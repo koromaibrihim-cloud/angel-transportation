@@ -179,6 +179,9 @@ app.get('/api/booking/status/:txRef', (req, res) => {
   });
 });
 
+// ── GET /ping — lightweight health check (used by uptime monitors) ───────────
+app.get('/ping', (_req, res) => res.json({ ok: true, ts: Date.now() }));
+
 // ── GET /api/user/trips/:userId ───────────────────────────────────────────────
 app.get('/api/user/trips/:userId', (req, res) => {
   const trips = getUserBookings(req.params.userId).map(b => ({

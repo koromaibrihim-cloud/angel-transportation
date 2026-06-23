@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1EB53A" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Angel Transportation — Bus Reservation</title>
+  <!-- Flutterwave Inline Checkout -->
+  <script src="https://checkout.flutterwave.com/v3.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1EB53A; --primary-dark: #078930; --primary-light: #e8f5e9;
+      --accent: #f59e0b; --success: #10b981; --danger: #ef4444;
+      --gray-50: #fff0f6; --gray-100: #fce4ec; --gray-200: #f8bbd0;
+      --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+      --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.05);
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1EB53A; color: var(--gray-800); min-height: 100vh; position: relative; }
+    /* Fixed flag background — works in all browsers including mobile Safari */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: -1;
+      background: linear-gradient(
+        to bottom,
+        #1EB53A 0%, #1EB53A 33.33%,
+        #ffffff 33.33%, #ffffff 66.66%,
+        #003F87 66.66%, #003F87 100%
+      );
+    }
+
+    /* Cross-browser helpers */
+    * { -webkit-box-sizing: border-box; box-sizing: border-box; }
+    input, select, button, textarea { font-family: inherit; }
+
+    /* NAVBAR */
+    nav { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.1); padding:0 24px; height:64px; display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center; -webkit-justify-content:space-between; justify-content:space-between; position:-webkit-sticky; position:sticky; top:0; z-index:100; }
+    .logo { font-size:1.3rem; font-weight:800; color:var(--primary); line-height:1.2; }
+    .logo span { color:var(--accent); }
+    .logo .sub-logo { font-size:.7rem; font-weight:500; color:var(--gray-400); display:block; letter-spacing:.5px; }
+    .nav-links { display:flex; gap:24px; }
+    .nav-links a { color:var(--gray-600); text-decoration:none; font-size:.9rem; font-weight:500; cursor:pointer; }
+    .nav-links a:hover { color:var(--primary); }
+
+    /* SCREENS */
+    .screen { display:none; }
+    .screen.active { display:block; }
+
+    /* HERO */
+    .hero { background:
+        linear-gradient(rgba(0,0,0,0.42), rgba(0,0,0,0.42)),
+        linear-gradient(to bottom, #1EB53A 0%, #1EB53A 33.33%, #ffffff 33.33%, #ffffff 66.66%, #003F87 66.66%, #003F87 100%);
+      padding:60px 24px 80px; text-align:center; color:#fff; position:relative; overflow:hidden; }
+    .hero::before { content:''; position:absolute; top:-60px; right:-60px; width:300px; height:300px; border-radius:50%; background:rgba(255,255,255,.05); }
+    .hero::after  { content:''; position:absolute; bottom:-80px; left:-40px; width:250px; height:250px; border-radius:50%; background:rgba(255,255,255,.05); }
+    .hero-badge { display:inline-block; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); border-radius:20px; padding:5px 14px; font-size:.8rem; font-weight:600; margin-bottom:16px; }
+    .hero h1 { font-size:2.5rem; font-weight:800; margin-bottom:12px; line-height:1.2; }
+    .hero p  { font-size:1.1rem; opacity:.85; margin-bottom:40px; }
+
+    /* SEARCH CARD */
+    .search-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow-lg); padding:28px; max-width:920px; margin:0 auto; position:relative; z-index:1; }
+    .search-grid { display:grid; grid-template-columns:1fr auto 1fr 1fr 140px auto; gap:12px; align-items:end; }
+    @media(max-width:860px){ .search-grid{grid-template-columns:1fr 1fr;} .swap-wrap{display:none!important;} .btn-search{grid-column:span 2;} }
+    .field label { display:block; font-size:.78rem; font-weight:700; color:var(--gray-500); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+    .field input, .field select { width:100%; padding:10px 14px; border:1.5px solid var(--gray-200); border-radius:8px; font-size:.95rem; color:var(--gray-800); background:#fff; transition:border-color .2s; }
+    .field input:focus, .field select:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(26,86,219,.12); }
+    .swap-btn { background:var(--primary-light); border:none; border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; margin-bottom:2px; color:var(--primary); transition:background .2s; }
+    .swap-btn:hover { background:var(--primary); color:#fff; }
+
+    /* BUTTONS */
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:11px 22px; border-radius:8px; font-size:.95rem; font-weight:600; cursor:pointer; border:none; transition:all .2s; }
+    .btn-primary  { background:var(--primary); color:#fff; }
+    .btn-primary:hover  { background:var(--primary-dark); transform:translateY(-1px); box-shadow:var(--shadow); }
+    .btn-primary:disabled { background:var(--gray-300); cursor:not-allowed; transform:none; }
+    .btn-search   { background:var(--accent); color:#fff; width:100%; padding:12px; font-size:1rem; }
+    .btn-search:hover { background:#d97706; transform:translateY(-1px); }
+    .btn-outline  { background:transparent; border:1.5px solid var(--gray-300); color:var(--gray-700); }
+    .btn-outline:hover  { border-color:var(--primary); color:var(--primary); }
+    .btn-success  { background:var(--success); color:#fff; }
+    .btn-success:hover  { background:#059669; }
+    .btn-success:disabled { background:var(--gray-300); cursor:not-allowed; }
+    .btn-lg   { padding:14px 28px; font-size:1.05rem; border-radius:10px; }
+    .btn-full { width:100%; }
+
+    /* FEATURES */
+    .features { padding:64px 24px; max-width:1100px; margin:0 auto; background:rgba(255,255,255,0.80); }
+    .features h2 { text-align:center; font-size:1.8rem; font-weight:700; margin-bottom:8px; }
+    .features .subtitle { text-align:center; color:var(--gray-500); margin-bottom:48px; }
+    .features-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:24px; }
+    .feature-card { background:#fff; border-radius:var(--radius); padding:28px 24px; text-align:center; box-shadow:var(--shadow); }
+    .feature-icon { width:56px; height:56px; border-radius:14px; background:var(--primary-light); display:flex; align-items:center; justify-content:center; font-size:1.6rem; margin:0 auto 16px; }
+    .feature-card h3 { font-size:1rem; font-weight:700; margin-bottom:8px; }
+    .feature-card p  { font-size:.875rem; color:var(--gray-500); line-height:1.6; }
+
+    /* POPULAR ROUTES */
+    .popular-routes { background:rgba(255,255,255,0.82); padding:48px 24px; }
+    .popular-routes h2 { text-align:center; font-size:1.5rem; font-weight:700; margin-bottom:8px; }
+    .popular-routes .subtitle { text-align:center; color:var(--gray-500); margin-bottom:32px; }
+    .routes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; max-width:1100px; margin:0 auto; }
+    .route-chip { background:#fff; border-radius:8px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; box-shadow:var(--shadow); cursor:pointer; transition:all .2s; font-size:.875rem; font-weight:600; }
+    .route-chip:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+    .route-chip .price { color:var(--primary); font-size:.8rem; }
+
+    /* PAGE */
+    .page-wrap { max-width:1100px; margin:0 auto; padding:32px 24px; }
+    .page-header { display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+    .back-btn { background:#fff; border:1.5px solid var(--gray-200); border-radius:8px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.1rem; color:var(--gray-600); transition:all .2s; flex-shrink:0; }
+    .back-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .page-header h2  { font-size:1.4rem; font-weight:700; }
+    .page-header .sub { font-size:.875rem; color:var(--gray-500); margin-top:2px; }
+
+    /* BUS CARDS */
+    .results-layout { display:grid; gap:16px; }
+    .bus-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 24px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:20px; border:1.5px solid transparent; transition:border-color .2s, box-shadow .2s; cursor:pointer; }
+    .bus-card:hover { border-color:var(--primary); box-shadow:var(--shadow-lg); }
+    @media(max-width:640px){ .bus-card{grid-template-columns:1fr;} }
+    .operator-badge { width:54px; height:54px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.8rem; color:#fff; flex-shrink:0; }
+    .bus-times { display:flex; align-items:center; gap:16px; margin-top:12px; }
+    .time-block .time { font-size:1.3rem; font-weight:700; }
+    .time-block .city { font-size:.75rem; color:var(--gray-500); margin-top:2px; }
+    .duration-line { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .dur { font-size:.75rem; color:var(--gray-500); }
+    .line { width:100%; height:2px; background:var(--gray-200); position:relative; }
+    .line::before,.line::after { content:''; position:absolute; top:50%; transform:translateY(-50%); width:6px; height:6px; border-radius:50%; background:var(--primary); }
+    .line::before { left:0; } .line::after { right:0; }
+    .bus-name { font-weight:700; font-size:.95rem; }
+    .bus-meta { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+    .badge { font-size:.72rem; padding:2px 8px; border-radius:20px; font-weight:600; }
+    .badge-blue { background:var(--primary-light); color:var(--primary); }
+    .badge-green { background:#d1fae5; color:#065f46; }
+    .badge-orange { background:#fef3c7; color:#92400e; }
+    .badge-gray { background:var(--gray-100); color:var(--gray-600); }
+    .bus-price { text-align:right; min-width:160px; }
+    .bus-price .amount { font-size:1.3rem; font-weight:800; color:var(--primary); }
+    .bus-price .per  { font-size:.75rem; color:var(--gray-400); }
+    .bus-price .seats { font-size:.78rem; color:var(--success); margin-top:4px; font-weight:600; }
+
+    /* SEAT MAP */
+    .seat-layout { display:grid; grid-template-columns:1fr 320px; gap:24px; }
+    @media(max-width:768px){ .seat-layout{grid-template-columns:1fr;} }
+    .seat-map-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:28px; }
+    .seat-legend { display:flex; gap:20px; margin-bottom:24px; flex-wrap:wrap; }
+    .legend-item { display:flex; align-items:center; gap:8px; font-size:.82rem; color:var(--gray-600); }
+    .legend-box { width:22px; height:22px; border-radius:6px; }
+    .legend-available { background:var(--gray-100); border:1.5px solid var(--gray-300); }
+    .legend-selected  { background:var(--primary); }
+    .legend-booked    { background:var(--gray-300); }
+    .bus-front { background:var(--gray-100); border-radius:8px 8px 4px 4px; text-align:center; padding:8px; font-size:.78rem; color:var(--gray-500); font-weight:600; margin-bottom:12px; }
+    .seat-grid { display:flex; flex-direction:column; gap:8px; }
+    .seat-row  { display:grid; grid-template-columns:24px 36px 36px 20px 36px 36px; gap:6px; align-items:center; }
+    .row-num { font-size:.72rem; color:var(--gray-400); text-align:center; font-weight:600; }
+    .aisle { width:20px; position:relative; }
+    .aisle::after { content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:2px; height:36px; background:var(--gray-200); border-radius:1px; }
+    .seat { width:36px; height:36px; border-radius:8px; border:1.5px solid var(--gray-300); background:var(--gray-100); cursor:pointer; font-size:.7rem; font-weight:700; color:var(--gray-500); display:flex; align-items:center; justify-content:center; transition:all .15s; position:relative; }
+    .seat::before { content:''; position:absolute; top:-4px; left:4px; right:4px; height:4px; background:var(--gray-300); border-radius:3px 3px 0 0; }
+    .seat:hover:not(.booked){ border-color:var(--primary); color:var(--primary); }
+    .seat.selected { background:var(--primary); border-color:var(--primary); color:#fff; }
+    .seat.selected::before { background:var(--primary-dark); }
+    .seat.booked { background:var(--gray-200); border-color:var(--gray-300); cursor:not-allowed; color:var(--gray-400); }
+    .seat.booked::before { background:var(--gray-300); }
+
+    /* SIDEBAR */
+    .booking-sidebar { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:24px; height:-webkit-fit-content; height:fit-content; position:-webkit-sticky; position:sticky; top:80px; }
+    .sidebar-title { font-size:1rem; font-weight:700; margin-bottom:16px; }
+    .summary-row { display:flex; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--gray-100); font-size:.875rem; }
+    .summary-row:last-of-type { border-bottom:none; }
+    .summary-row .label { color:var(--gray-500); }
+    .summary-row .val { font-weight:600; text-align:right; max-width:60%; }
+    .total-row { display:flex; justify-content:space-between; padding:14px 0 0; margin-top:4px; border-top:2px solid var(--gray-200); }
+    .total-row .label { font-weight:700; }
+    .total-row .val   { font-size:1.2rem; font-weight:800; color:var(--primary); }
+
+    /* FORMS */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media(max-width:640px){ .form-grid{grid-template-columns:1fr;} }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-group.full { grid-column:span 2; }
+    @media(max-width:640px){ .form-group.full{grid-column:span 1;} }
+    .form-group label { font-size:.82rem; font-weight:600; color:var(--gray-600); }
+    .form-group input, .form-group select { padding:11px 14px; border:1.5px solid var(--gray-200); border-radius:8px; font-size:.95rem; color:var(--gray-800); transition:border-color .2s; }
+    .form-group input:focus, .form-group select:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(26,86,219,.1); }
+    .section-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:28px; margin-bottom:20px; }
+    .section-card h3 { font-size:1rem; font-weight:700; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--gray-100); }
+
+    /* PAYMENT */
+    .payment-tabs { display:flex; border:1.5px solid var(--gray-200); border-radius:10px; overflow:hidden; margin-bottom:24px; }
+    .pay-tab { flex:1; padding:12px; text-align:center; font-size:.875rem; font-weight:600; cursor:pointer; border:none; background:#fff; color:var(--gray-500); transition:all .2s; border-right:1px solid var(--gray-200); }
+    .pay-tab:last-child { border-right:none; }
+    .pay-tab.active { background:var(--primary); color:#fff; }
+    .pay-tab:hover:not(.active){ background:var(--gray-50); }
+
+    .card-visual { background:linear-gradient(to bottom, #1EB53A 0%, #1EB53A 33%, #fff 33%, #fff 66%, #003F87 66%, #003F87 100%); border-radius:14px; padding:24px; color:#fff; margin-bottom:24px; position:relative; overflow:hidden; height:180px; }
+    .card-visual::before { content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,.08); }
+    .card-chip { width:40px; height:30px; background:linear-gradient(135deg,#f59e0b,#d97706); border-radius:6px; margin-bottom:24px; }
+    .card-number-display { font-size:1.15rem; letter-spacing:3px; font-weight:600; margin-bottom:20px; font-family:'Courier New',monospace; color:#1f2937; text-shadow:0 1px 2px rgba(255,255,255,.8); }
+    .card-bottom { display:flex; justify-content:space-between; align-items:flex-end; }
+    .card-holder-display .clabel { font-size:.65rem; opacity:.7; text-transform:uppercase; letter-spacing:.5px; }
+    .card-holder-display .cval  { font-size:.9rem; font-weight:600; }
+    .card-network { font-size:1.4rem; font-weight:800; opacity:.9; }
+    .card-form { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media(max-width:500px){ .card-form{grid-template-columns:1fr;} }
+    .card-form .full { grid-column:span 2; }
+    @media(max-width:500px){ .card-form .full{grid-column:span 1;} }
+    .security-badges { display:flex; align-items:center; gap:12px; margin-top:20px; padding:12px 14px; background:#fce4ec; border-radius:8px; font-size:.78rem; color:var(--gray-500); }
+
+    /* BANK / WALLET */
+    .bank-info { background:#fce4ec; border-radius:10px; padding:20px; }
+    .bank-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--gray-200); font-size:.875rem; }
+    .bank-row:last-child { border-bottom:none; }
+    .bank-row .lbl { color:var(--gray-500); }
+    .bank-row .val { font-weight:700; }
+    .copy-btn { background:none; border:none; color:var(--primary); cursor:pointer; font-size:.78rem; font-weight:600; padding:2px 8px; border-radius:4px; }
+    .copy-btn:hover { background:var(--primary-light); }
+    .wallet-options { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .wallet-option { border:2px solid var(--gray-200); border-radius:10px; padding:16px; text-align:center; cursor:pointer; transition:all .2s; }
+    .wallet-option:hover { border-color:var(--primary); }
+    .wallet-option.selected { border-color:var(--primary); background:var(--primary-light); }
+    .wallet-option .wicon { font-size:1.8rem; margin-bottom:6px; }
+    .wallet-option .wname { font-size:.85rem; font-weight:600; }
+
+    /* ALERTS */
+    .alert { padding:12px 16px; border-radius:8px; font-size:.875rem; margin-bottom:16px; display:flex; align-items:flex-start; gap:10px; }
+    .alert-info { background:var(--primary-light); color:var(--primary-dark); }
+    .alert-warn { background:#fef3c7; color:#92400e; }
+    .alert-error { background:#fee2e2; color:#991b1b; }
+
+    /* PROCESSING OVERLAY */
+    .processing-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:200; align-items:center; justify-content:center; }
+    .processing-overlay.show { display:flex; }
+    .processing-card { background:#fff; border-radius:16px; padding:40px 48px; text-align:center; max-width:340px; }
+    .spinner { width:56px; height:56px; border:4px solid #f8bbd0; border-top-color:#1EB53A; border-radius:50%; margin:0 auto 20px; animation:spin .8s linear infinite; }
+    @keyframes spin { to{ transform:rotate(360deg); } }
+    .processing-card h3 { font-size:1.1rem; font-weight:700; margin-bottom:8px; }
+    .processing-card p  { font-size:.875rem; color:var(--gray-500); }
+    .processing-steps { margin-top:20px; text-align:left; }
+    .proc-step { display:flex; align-items:center; gap:10px; font-size:.82rem; color:var(--gray-500); padding:6px 0; }
+    .proc-step.done  { color:var(--success); }
+    .proc-step.active { color:var(--primary); font-weight:600; }
+    .proc-dot { width:8px; height:8px; border-radius:50%; background:currentColor; flex-shrink:0; }
+
+    /* CONFIRMATION */
+    .confirm-hero { text-align:center; padding:48px 24px 32px; }
+    .success-icon { width:80px; height:80px; background:linear-gradient(135deg,#10b981,#059669); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2.2rem; margin:0 auto 20px; box-shadow:0 0 0 12px rgba(16,185,129,.12); }
+    .confirm-hero h2 { font-size:1.8rem; font-weight:800; margin-bottom:8px; }
+    .confirm-hero p  { color:var(--gray-500); margin-bottom:4px; }
+    .booking-ref { display:inline-block; background:var(--primary-light); color:var(--primary); font-weight:800; font-size:1rem; padding:6px 16px; border-radius:20px; margin-top:12px; letter-spacing:1px; }
+    .ticket-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow-lg); max-width:520px; margin:0 auto 24px; overflow:hidden; }
+    .ticket-header { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; padding:20px 24px; display:flex; justify-content:space-between; align-items:center; }
+    .ticket-header .tlogo { font-size:1rem; font-weight:800; }
+    .ticket-route { display:flex; align-items:center; gap:12px; padding:20px 24px; border-bottom:2px dashed var(--gray-200); }
+    .ticket-city { flex:1; }
+    .ticket-city .name { font-size:1.3rem; font-weight:800; }
+    .ticket-city .code { font-size:.75rem; color:var(--gray-400); text-transform:uppercase; }
+    .ticket-details { padding:20px 24px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+    .ticket-field .flabel { font-size:.72rem; color:var(--gray-400); text-transform:uppercase; letter-spacing:.5px; }
+    .ticket-field .fval  { font-size:.95rem; font-weight:700; margin-top:3px; }
+    .qr-section { padding:20px 24px; border-top:2px dashed var(--gray-200); text-align:center; }
+    .qr-section p { font-size:.78rem; color:var(--gray-400); margin-top:8px; }
+    .confirm-actions { display:flex; gap:12px; justify-content:center; max-width:520px; margin:0 auto; padding:0 24px 48px; flex-wrap:wrap; }
+
+    footer { background:var(--gray-800); color:var(--gray-400); text-align:center; padding:28px 24px; font-size:.82rem; }
+    footer .footer-brand { color:#fff; font-weight:700; font-size:.95rem; margin-bottom:6px; }
+    footer a { color:var(--gray-400); }
+    .mt-16 { margin-top:16px; }
+
+    @media(max-width:768px){
+      #screen-passenger .page-wrap > div[style*="grid"] { grid-template-columns:1fr !important; }
+      #screen-payment   .page-wrap > div[style*="grid"] { grid-template-columns:1fr !important; }
+    }
+
+    /* BUS ILLUSTRATION */
+    .hero-bus-wrap { margin-top:32px; display:flex; justify-content:center; }
+    .hero-bus { width:100%; max-width:520px; filter:drop-shadow(0 8px 24px rgba(0,0,0,.35)); animation:busFloat 3s ease-in-out infinite; }
+    @keyframes busFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    @media(max-width:640px){ .hero-bus{ max-width:340px; } }
+
+    /* CHILDREN */
+    .child-card { background:var(--gray-50); border:1.5px solid var(--gray-200); border-radius:10px; padding:16px; margin-bottom:12px; position:relative; }
+    .child-card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; font-weight:700; font-size:.9rem; color:var(--gray-700); }
+    .remove-child-btn { background:none; border:none; color:var(--danger); font-size:1rem; cursor:pointer; padding:2px 6px; border-radius:4px; }
+    .remove-child-btn:hover { background:#fee2e2; }
+    .child-fare-note { font-size:.75rem; color:var(--primary); font-weight:600; margin-top:4px; }
+
+    /* MY TRIPS */
+    .trips-empty { text-align:center; padding:64px 24px; color:var(--gray-400); }
+    .trips-empty .empty-icon { font-size:3.5rem; margin-bottom:16px; }
+    .trips-empty p { font-size:1rem; margin-bottom:20px; }
+    .trip-card { background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 24px; margin-bottom:16px; border-left:4px solid var(--gray-200); }
+    .trip-card.confirmed { border-left-color:var(--success); }
+    .trip-card.pending   { border-left-color:var(--accent); }
+    .trip-card.expired, .trip-card.failed { border-left-color:var(--danger); }
+    .trip-card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+    .trip-ref { font-size:.78rem; color:var(--gray-400); font-weight:600; letter-spacing:.5px; }
+    .trip-route { font-size:1.1rem; font-weight:800; color:var(--gray-800); }
+    .trip-status { font-size:.75rem; font-weight:700; padding:3px 10px; border-radius:20px; }
+    .trip-status.confirmed { background:#d1fae5; color:#065f46; }
+    .trip-status.pending   { background:#fef3c7; color:#92400e; }
+    .trip-status.expired,.trip-status.failed { background:#fee2e2; color:#991b1b; }
+    .trip-details { display:flex; gap:24px; flex-wrap:wrap; font-size:.85rem; color:var(--gray-500); margin-bottom:12px; }
+    .trip-detail-item strong { display:block; color:var(--gray-700); font-size:.9rem; }
+    .trip-qr { margin-top:12px; padding-top:12px; border-top:1px solid var(--gray-100); display:flex; align-items:center; gap:16px; }
+    .trip-qr img { border-radius:8px; border:2px solid var(--gray-100); }
+    .trip-qr-text { font-size:.8rem; color:var(--gray-500); }
+
+    /* NAV AUTH */
+    .nav-auth { display:flex; gap:10px; align-items:center; }
+    .btn-sm { padding:7px 16px; font-size:.85rem; border-radius:7px; }
+    .nav-user { display:flex; align-items:center; gap:12px; }
+    .user-greeting { font-size:.9rem; font-weight:600; color:var(--gray-700); }
+
+    /* AUTH MODALS */
+    .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:500; align-items:center; justify-content:center; padding:16px; }
+    .modal-backdrop.open { display:flex; }
+    .modal-card { background:#fff; border-radius:16px; width:100%; max-width:480px; box-shadow:0 25px 50px rgba(0,0,0,.25); overflow:hidden; animation:modalIn .2s ease; }
+    @keyframes modalIn { from{transform:scale(.95);opacity:0} to{transform:scale(1);opacity:1} }
+    .modal-header { display:flex; align-items:flex-start; justify-content:space-between; padding:24px 24px 0; }
+    .modal-header h2 { font-size:1.25rem; font-weight:800; color:var(--gray-800); margin-bottom:4px; }
+    .modal-header p { font-size:.85rem; color:var(--gray-500); }
+    .modal-close { background:none; border:none; font-size:1.1rem; color:var(--gray-400); cursor:pointer; padding:4px 8px; border-radius:6px; line-height:1; }
+    .modal-close:hover { background:var(--gray-100); color:var(--gray-700); }
+    .modal-body { padding:20px 24px; }
+    .modal-footer { padding:0 24px 24px; }
+    .modal-switch { text-align:center; font-size:.85rem; color:var(--gray-500); margin-top:14px; }
+    .modal-switch a { color:var(--primary); font-weight:600; cursor:pointer; text-decoration:underline; }
+    .btn-loading { opacity:.7; pointer-events:none; }
+    .modal-header-strip { height:5px; background:linear-gradient(to right,#1EB53A,#003F87); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    Angel <span>Transportation</span>
+    <span class="sub-logo">Sierra Leone · Est. 2005</span>
+  </div>
+  <div class="nav-links">
+    <a onclick="goHome()">Home</a>
+    <a onclick="showMyTrips()">My Trips</a>
+    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=angelinesiakoroma@gmail.com" target="_blank" rel="noopener">Contact Us</a>
+  </div>
+  <div class="nav-auth" id="navAuth">
+    <button class="btn btn-outline btn-sm" onclick="openModal('loginModal')">Log In</button>
+    <button class="btn btn-primary btn-sm" onclick="openModal('signupModal')">Sign Up</button>
+  </div>
+  <div class="nav-user" id="navUser" style="display:none">
+    <span class="user-greeting" id="userGreeting">👋 Hi, Name</span>
+    <button class="btn btn-outline btn-sm" onclick="logout()">Log Out</button>
+  </div>
+</nav>
+
+<!-- ==================== SIGN UP MODAL ==================== -->
+<div class="modal-backdrop" id="signupModal" onclick="closeModalOutside(event,'signupModal')">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <h2>Create Your Account</h2>
+        <p>Book faster, track your trips, get receipts by email</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('signupModal')">✕</button>
+    </div>
+    <div id="signup-error" class="alert alert-error" style="display:none"></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" id="su-first" placeholder="First name" />
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" id="su-last" placeholder="Last name" />
+        </div>
+        <div class="form-group full">
+          <label>Email Address</label>
+          <input type="email" id="su-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group full">
+          <label>Phone Number (+232)</label>
+          <input type="tel" id="su-phone" placeholder="07X XXX XXXX" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="su-pass" placeholder="Min. 6 characters" />
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" id="su-pass2" placeholder="Repeat password" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary btn-full btn-lg" id="signupBtn" onclick="submitSignup()">
+        Create Account
+      </button>
+      <p class="modal-switch">Already have an account? <a onclick="switchModal('signupModal','loginModal')">Log In</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== LOGIN MODAL ==================== -->
+<div class="modal-backdrop" id="loginModal" onclick="closeModalOutside(event,'loginModal')">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <h2>Welcome Back</h2>
+        <p>Log in to manage your bookings</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+    </div>
+    <div id="login-error" class="alert alert-error" style="display:none"></div>
+    <div class="modal-body">
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="li-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="li-pass" placeholder="Your password" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary btn-full btn-lg" id="loginBtn" onclick="submitLogin()">
+        Log In
+      </button>
+      <p class="modal-switch">Don't have an account? <a onclick="switchModal('loginModal','signupModal')">Sign Up</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- PROCESSING OVERLAY — shown while polling backend after Flutterwave callback -->
+<div class="processing-overlay" id="processingOverlay">
+  <div class="processing-card">
+    <div class="spinner"></div>
+    <h3>Confirming your booking…</h3>
+    <p>Please wait while we verify your payment.</p>
+    <div class="processing-steps">
+      <div class="proc-step done"  id="step-payment"><div class="proc-dot"></div> Payment received</div>
+      <div class="proc-step active" id="step-verify"> <div class="proc-dot"></div> Verifying with Flutterwave</div>
+      <div class="proc-step"       id="step-ticket"> <div class="proc-dot"></div> Generating e-ticket &amp; QR</div>
+      <div class="proc-step"       id="step-sms">    <div class="proc-dot"></div> Sending SMS confirmation</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== HOME ==================== -->
+<div class="screen active" id="screen-home">
+  <div class="hero">
+    <div class="hero-badge">🇸🇱 Sierra Leone's Trusted Bus Service</div>
+    <h1>Book Your Journey<br>Across Sierra Leone</h1>
+    <p>Travel safely and comfortably to every corner of the country</p>
+
+    <div class="search-card">
+      <div class="search-grid">
+        <div class="field">
+          <label>From</label>
+          <select id="fromCity">
+            <option value="">Select departure</option>
+            <optgroup label="Western Area">
+              <option>Freetown</option><option>Waterloo</option><option>Hastings</option>
+              <option>Regent</option><option>Wellington</option><option>Kissy</option>
+              <option>Lumley</option><option>Goderich</option><option>Tombo</option>
+              <option>Lakka</option><option>Sussex</option><option>Lungi</option>
+            </optgroup>
+            <optgroup label="Southern Province">
+              <option>Bo</option><option>Kenema</option><option>Pujehun</option>
+              <option>Moyamba</option><option>Bonthe</option><option>Mattru Jong</option>
+              <option>Blama</option><option>Segbwema</option><option>Bumpe</option>
+              <option>Rotifunk</option><option>Zimmi</option><option>Tikonko</option>
+              <option>Bandajuma</option><option>Mano</option><option>Potoru</option>
+            </optgroup>
+            <optgroup label="Northern Province">
+              <option>Makeni</option><option>Port Loko</option><option>Lunsar</option>
+              <option>Kambia</option><option>Kabala</option><option>Magburaka</option>
+              <option>Binkolo</option><option>Rokupr</option><option>Mange</option>
+              <option>Falaba</option><option>Bendugu</option><option>Bumbuna</option>
+              <option>Mambolo</option><option>Gberia Fotombu</option><option>Batkanu</option>
+              <option>Marampa</option>
+            </optgroup>
+            <optgroup label="Eastern Province">
+              <option>Koidu (Kono)</option><option>Kailahun</option><option>Daru</option>
+              <option>Pendembu</option><option>Yengema</option><option>Buedu</option>
+              <option>Sefadu</option><option>Gandorhun</option><option>Boajibu</option>
+              <option>Panguma</option><option>Giehun</option><option>Jojoima</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="swap-wrap" style="display:flex;align-items:flex-end;padding-bottom:2px">
+          <button class="swap-btn" onclick="swapCities()" title="Swap">⇄</button>
+        </div>
+        <div class="field">
+          <label>To</label>
+          <select id="toCity">
+            <option value="">Select destination</option>
+            <optgroup label="Western Area">
+              <option>Freetown</option><option>Waterloo</option><option>Hastings</option>
+              <option>Regent</option><option>Wellington</option><option>Kissy</option>
+              <option>Lumley</option><option>Goderich</option><option>Tombo</option>
+              <option>Lakka</option><option>Sussex</option><option>Lungi</option>
+            </optgroup>
+            <optgroup label="Southern Province">
+              <option>Bo</option><option>Kenema</option><option>Pujehun</option>
+              <option>Moyamba</option><option>Bonthe</option><option>Mattru Jong</option>
+              <option>Blama</option><option>Segbwema</option><option>Bumpe</option>
+              <option>Rotifunk</option><option>Zimmi</option><option>Tikonko</option>
+              <option>Bandajuma</option><option>Mano</option><option>Potoru</option>
+            </optgroup>
+            <optgroup label="Northern Province">
+              <option>Makeni</option><option>Port Loko</option><option>Lunsar</option>
+              <option>Kambia</option><option>Kabala</option><option>Magburaka</option>
+              <option>Binkolo</option><option>Rokupr</option><option>Mange</option>
+              <option>Falaba</option><option>Bendugu</option><option>Bumbuna</option>
+              <option>Mambolo</option><option>Gberia Fotombu</option><option>Batkanu</option>
+              <option>Marampa</option>
+            </optgroup>
+            <optgroup label="Eastern Province">
+              <option>Koidu (Kono)</option><option>Kailahun</option><option>Daru</option>
+              <option>Pendembu</option><option>Yengema</option><option>Buedu</option>
+              <option>Sefadu</option><option>Gandorhun</option><option>Boajibu</option>
+              <option>Panguma</option><option>Giehun</option><option>Jojoima</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field"><label>Date</label><input type="date" id="travelDate" /></div>
+        <div class="field">
+          <label>Passengers</label>
+          <select id="passengers">
+            <option value="1">1 Adult</option><option value="2">2 Adults</option>
+            <option value="3">3 Adults</option><option value="4">4 Adults</option>
+            <option value="5">5 Adults</option>
+          </select>
+        </div>
+        <button class="btn btn-search" onclick="searchBuses()">🔍 Search</button>
+      </div>
+    </div>
+
+    <!-- Angel Transportation bus illustration -->
+    <div class="hero-bus-wrap">
+      <svg class="hero-bus" viewBox="0 0 600 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Angel Transportation coach bus">
+        <!-- Shadow -->
+        <ellipse cx="295" cy="205" rx="255" ry="10" fill="rgba(0,0,0,0.22)"/>
+        <!-- Undercarriage / chassis -->
+        <rect x="55" y="158" width="490" height="22" rx="6" fill="#0d1117"/>
+        <!-- Main body -->
+        <rect x="40" y="48" width="510" height="118" rx="18" fill="#1EB53A"/>
+        <!-- White mid-stripe (flag) -->
+        <rect x="40" y="110" width="510" height="28" fill="#ffffff"/>
+        <!-- Blue lower band (flag) -->
+        <rect x="40" y="138" width="510" height="28" rx="0" fill="#003F87"/>
+        <rect x="40" y="152" width="510" height="14" rx="8" fill="#003F87"/>
+        <!-- Roof panel -->
+        <rect x="60" y="36" width="470" height="18" rx="9" fill="#078930"/>
+        <!-- Roof luggage rail -->
+        <rect x="80" y="33" width="430" height="5" rx="2.5" fill="#065f46"/>
+        <!-- Destination board -->
+        <rect x="360" y="38" width="160" height="16" rx="5" fill="#1f2937"/>
+        <text x="440" y="50" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#fde68a">FREETOWN → BO</text>
+        <!-- WINDSHIELD (front right) -->
+        <rect x="508" y="60" width="52" height="55" rx="8" fill="#bfdbfe" opacity="0.85"/>
+        <line x1="534" y1="60" x2="534" y2="115" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+        <!-- Side windows -->
+        <rect x="420" y="62" width="68" height="42" rx="7" fill="#bfdbfe" opacity="0.85"/>
+        <rect x="336" y="62" width="68" height="42" rx="7" fill="#bfdbfe" opacity="0.85"/>
+        <rect x="252" y="62" width="68" height="42" rx="7" fill="#bfdbfe" opacity="0.85"/>
+        <rect x="168" y="62" width="68" height="42" rx="7" fill="#bfdbfe" opacity="0.85"/>
+        <rect x="84"  y="62" width="68" height="42" rx="7" fill="#bfdbfe" opacity="0.85"/>
+        <!-- Window reflections -->
+        <rect x="422" y="64" width="10" height="38" rx="3" fill="rgba(255,255,255,0.25)"/>
+        <rect x="338" y="64" width="10" height="38" rx="3" fill="rgba(255,255,255,0.25)"/>
+        <rect x="254" y="64" width="10" height="38" rx="3" fill="rgba(255,255,255,0.25)"/>
+        <rect x="170" y="64" width="10" height="38" rx="3" fill="rgba(255,255,255,0.25)"/>
+        <rect x="86"  y="64" width="10" height="38" rx="3" fill="rgba(255,255,255,0.25)"/>
+        <!-- Door (front left) -->
+        <rect x="42" y="62" width="32" height="76" rx="5" fill="#078930"/>
+        <rect x="57" y="62" width="2"  height="76" fill="rgba(0,0,0,0.2)"/>
+        <circle cx="52" cy="100" r="3" fill="#9ca3af"/>
+        <!-- Tail light -->
+        <rect x="42" y="82" width="9" height="26" rx="4" fill="#ef4444"/>
+        <rect x="42" y="82" width="9" height="10" rx="4" fill="#fca5a5"/>
+        <!-- Front headlight -->
+        <rect x="553" y="82" width="16" height="14" rx="5" fill="#fef08a"/>
+        <rect x="553" y="100" width="16" height="9" rx="4" fill="#f59e0b"/>
+        <!-- Front grille -->
+        <rect x="555" y="120" width="14" height="28" rx="4" fill="#065f46"/>
+        <line x1="557" y1="126" x2="567" y2="126" stroke="#9ca3af" stroke-width="1"/>
+        <line x1="557" y1="132" x2="567" y2="132" stroke="#9ca3af" stroke-width="1"/>
+        <line x1="557" y1="138" x2="567" y2="138" stroke="#9ca3af" stroke-width="1"/>
+        <!-- Side mirror -->
+        <rect x="565" y="70" width="22" height="13" rx="5" fill="#065f46"/>
+        <rect x="563" y="76" width="4"  height="4"  rx="2" fill="#9ca3af"/>
+        <!-- Company text on white stripe -->
+        <text x="295" y="130" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="bold" letter-spacing="2" fill="#1EB53A">ANGEL TRANSPORTATION</text>
+        <!-- Wheel arches -->
+        <rect x="76"  y="162" width="100" height="28" rx="14" fill="#0d1117"/>
+        <rect x="410" y="162" width="100" height="28" rx="14" fill="#0d1117"/>
+        <!-- Wheels -->
+        <circle cx="126" cy="185" r="24" fill="#1f2937"/>
+        <circle cx="126" cy="185" r="16" fill="#374151"/>
+        <circle cx="126" cy="185" r="8"  fill="#6b7280"/>
+        <circle cx="126" cy="185" r="3"  fill="#d1d5db"/>
+        <circle cx="460" cy="185" r="24" fill="#1f2937"/>
+        <circle cx="460" cy="185" r="16" fill="#374151"/>
+        <circle cx="460" cy="185" r="8"  fill="#6b7280"/>
+        <circle cx="460" cy="185" r="3"  fill="#d1d5db"/>
+        <!-- Exhaust pipe -->
+        <rect x="46" y="170" width="18" height="7" rx="3.5" fill="#4b5563"/>
+      </svg>
+    </div>
+  </div>
+
+  <section class="popular-routes">
+    <h2>Popular Routes</h2>
+    <p class="subtitle">Most booked routes on Angel Transportation</p>
+    <div class="routes-grid">
+      <div class="route-chip" onclick="quickBook('Freetown','Bo')"><span>Freetown → Bo</span><span class="price">From Le 150,000</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Kenema')"><span>Freetown → Kenema</span><span class="price">From Le 200,000</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Makeni')"><span>Freetown → Makeni</span><span class="price">From Le 120,000</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Koidu (Kono)')"><span>Freetown → Koidu</span><span class="price">From Le 250,000</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Kabala')"><span>Freetown → Kabala</span><span class="price">From Le 180,000</span></div>
+      <div class="route-chip" onclick="quickBook('Bo','Kenema')"><span>Bo → Kenema</span><span class="price">From Le 80,000</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Port Loko')"><span>Freetown → Port Loko</span><span class="price">From Le 90,000</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Kailahun')"><span>Freetown → Kailahun</span><span class="price">From Le 280,000</span></div>
+    </div>
+  </section>
+
+  <section class="features">
+    <h2>Why Travel with Angel Transportation?</h2>
+    <p class="subtitle">Sierra Leone's most trusted intercity bus service since 2005</p>
+    <div class="features-grid">
+      <div class="feature-card"><div class="feature-icon">🚌</div><h3>Modern Fleet</h3><p>Air-conditioned coaches and VIP buses covering all major routes across Sierra Leone.</p></div>
+      <div class="feature-card"><div class="feature-icon">💺</div><h3>Choose Your Seat</h3><p>Pick your preferred seat from an interactive seat map before you book.</p></div>
+      <div class="feature-card"><div class="feature-icon">📱</div><h3>Orange &amp; Africell Money</h3><p>Pay with mobile money — a USSD prompt is sent to your phone to approve with your PIN. No app needed.</p></div>
+      <div class="feature-card"><div class="feature-icon">🎟️</div><h3>Instant E-Ticket + SMS</h3><p>QR e-ticket generated and SMS sent the moment your payment is confirmed.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-brand">Angel Transportation Sierra Leone</div>
+    <p>📍 37 Siaka Stevens Street, Freetown, Sierra Leone</p>
+    <p style="margin-top:6px">📞 <a href="tel:+23234423506">+232-344-23506</a> &nbsp;|&nbsp; ✉️ <a href="https://mail.google.com/mail/?view=cm&fs=1&to=angelinesiakoroma@gmail.com" target="_blank" rel="noopener">angelinesiakoroma@gmail.com</a></p>
+    <p style="margin-top:8px">© 2026 Angel Transportation. All rights reserved. &nbsp;|&nbsp; <a href="#">Privacy Policy</a></p>
+  </footer>
+</div>
+
+<!-- ==================== RESULTS ==================== -->
+<div class="screen" id="screen-results">
+  <div class="page-wrap">
+    <div class="page-header">
+      <button class="back-btn" onclick="goHome()">←</button>
+      <div>
+        <h2 id="results-title">Freetown → Bo</h2>
+        <div class="sub" id="results-sub"></div>
+      </div>
+    </div>
+    <div id="bus-list" class="results-layout"></div>
+  </div>
+</div>
+
+<!-- ==================== SEAT SELECT ==================== -->
+<div class="screen" id="screen-seats">
+  <div class="page-wrap">
+    <div class="page-header">
+      <button class="back-btn" onclick="showScreen('results')">←</button>
+      <div><h2>Select Your Seat(s)</h2><div class="sub" id="seat-sub"></div></div>
+    </div>
+    <div class="seat-layout">
+      <div class="seat-map-card">
+        <div class="seat-legend">
+          <div class="legend-item"><div class="legend-box legend-available"></div> Available</div>
+          <div class="legend-item"><div class="legend-box legend-selected"></div> Selected</div>
+          <div class="legend-item"><div class="legend-box legend-booked"></div> Booked</div>
+        </div>
+        <div class="bus-front">🚌 Driver — Front of Bus</div>
+        <div class="seat-grid" id="seat-grid"></div>
+      </div>
+      <div class="booking-sidebar">
+        <div class="sidebar-title">Booking Summary</div>
+        <div class="summary-row"><span class="label">Route</span><span class="val" id="sum-route">—</span></div>
+        <div class="summary-row"><span class="label">Date</span><span class="val" id="sum-date">—</span></div>
+        <div class="summary-row"><span class="label">Service</span><span class="val" id="sum-operator">—</span></div>
+        <div class="summary-row"><span class="label">Departure</span><span class="val" id="sum-dep">—</span></div>
+        <div class="summary-row"><span class="label">Class</span><span class="val" id="sum-class">—</span></div>
+        <div class="summary-row"><span class="label">Seat(s)</span><span class="val" id="sum-seats">None selected</span></div>
+        <div class="summary-row"><span class="label">Price/seat</span><span class="val" id="sum-price-each">—</span></div>
+        <div class="total-row"><span class="label">Total</span><span class="val" id="sum-total">Le 0</span></div>
+        <button class="btn btn-primary btn-full mt-16" id="continueBtn" onclick="goToPassenger()" disabled>Continue →</button>
+        <p style="font-size:.75rem;color:var(--gray-400);text-align:center;margin-top:10px" id="seat-hint">
+          Select <span id="seats-needed">1</span> seat(s) to continue
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PASSENGER DETAILS ==================== -->
+<div class="screen" id="screen-passenger">
+  <div class="page-wrap" style="max-width:860px">
+    <div class="page-header">
+      <button class="back-btn" onclick="showScreen('seats')">←</button>
+      <div><h2>Passenger Details</h2><div class="sub">Provide accurate details — these appear on your ticket</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:24px">
+      <div>
+        <div id="passenger-forms"></div>
+
+        <!-- CHILDREN SECTION -->
+        <div class="section-card">
+          <h3>Children Traveling With You</h3>
+          <div class="alert alert-info" style="margin-bottom:16px;font-size:.82rem">
+            👶 <strong>Infants (0–2 yrs):</strong> Free &nbsp;·&nbsp; 🧒 <strong>Children (3–11 yrs):</strong> 50% off adult fare
+          </div>
+          <div id="children-list"></div>
+          <button class="btn btn-outline" onclick="addChild()" style="width:100%;margin-top:8px">+ Add a Child</button>
+        </div>
+
+        <div class="section-card">
+          <h3>Additional Options</h3>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.9rem">
+              <input type="checkbox" id="opt-insurance" style="width:16px;height:16px" />
+              <span><strong>Travel Insurance</strong> — Le 10,000/passenger (trip cancellation &amp; delay cover)</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.9rem">
+              <input type="checkbox" id="opt-luggage" style="width:16px;height:16px" />
+              <span><strong>Extra Luggage</strong> — Le 20,000 (up to 30 kg additional)</span>
+            </label>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg" onclick="goToPayment()">Proceed to Payment →</button>
+      </div>
+      <div>
+        <div class="booking-sidebar">
+          <div class="sidebar-title">Trip Summary</div>
+          <div class="summary-row"><span class="label">Route</span><span class="val" id="ps-route">—</span></div>
+          <div class="summary-row"><span class="label">Date</span><span class="val" id="ps-date">—</span></div>
+          <div class="summary-row"><span class="label">Departure</span><span class="val" id="ps-dep">—</span></div>
+          <div class="summary-row"><span class="label">Seat(s)</span><span class="val" id="ps-seats">—</span></div>
+          <div class="summary-row"><span class="label">Fare</span><span class="val" id="ps-fare">—</span></div>
+          <div class="summary-row" id="ps-children-row" style="display:none"><span class="label">Children fare</span><span class="val" id="ps-children-fare">—</span></div>
+          <div class="summary-row"><span class="label">Service fee</span><span class="val">Le 5,000</span></div>
+          <div class="total-row"><span class="label">Total</span><span class="val" id="ps-total">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PAYMENT ==================== -->
+<div class="screen" id="screen-payment">
+  <div class="page-wrap" style="max-width:860px">
+    <div class="page-header">
+      <button class="back-btn" onclick="showScreen('passenger')">←</button>
+      <div><h2>Secure Payment</h2><div class="sub">Powered by Flutterwave — PCI-DSS compliant</div></div>
+    </div>
+
+    <div id="payment-error" class="alert alert-error" style="display:none"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:24px">
+      <div>
+        <div class="section-card">
+          <h3>Payment Method</h3>
+          <div class="payment-tabs">
+            <button class="pay-tab active" onclick="switchPayTab('card',this)">💳 Card</button>
+            <button class="pay-tab" onclick="switchPayTab('mobile',this)">📱 Mobile Money</button>
+            <button class="pay-tab" onclick="switchPayTab('bank',this)">🏦 Bank Transfer</button>
+          </div>
+
+          <!-- CARD -->
+          <div id="tab-card">
+            <div class="alert alert-info">
+              Your card details are entered securely inside the Flutterwave checkout — we never see your card number.
+            </div>
+            <div class="card-visual">
+              <div class="card-chip"></div>
+              <div class="card-number-display">•••• •••• •••• ••••</div>
+              <div class="card-bottom">
+                <div class="card-holder-display">
+                  <div class="clabel">Card Holder</div><div class="cval">YOUR NAME</div>
+                </div>
+                <div class="card-holder-display" style="text-align:right">
+                  <div class="clabel">Expires</div><div class="cval">MM/YY</div>
+                </div>
+                <div class="card-network">VISA</div>
+              </div>
+            </div>
+            <p style="font-size:.875rem;color:var(--gray-500)">
+              Click <strong>Pay</strong> below to enter your card details securely in the Flutterwave checkout window.
+              Supports Visa, Mastercard, and Verve.
+            </p>
+            <div class="security-badges mt-16">
+              🔒 256-bit SSL &nbsp;·&nbsp; PCI-DSS Level 1 &nbsp;·&nbsp; 3D Secure enabled
+            </div>
+          </div>
+
+          <!-- MOBILE MONEY -->
+          <div id="tab-mobile" style="display:none">
+            <div class="alert alert-info">
+              📱 Select your network. Flutterwave will send a <strong>USSD prompt to your phone</strong> — enter your PIN to approve. Works on any phone, no app needed.
+            </div>
+            <div class="wallet-options">
+              <div class="wallet-option selected" id="wallet-orange" onclick="selectWallet('orange')">
+                <div class="wicon">🟠</div><div class="wname">Orange Money</div>
+              </div>
+              <div class="wallet-option" id="wallet-africell" onclick="selectWallet('africell')">
+                <div class="wicon">🟡</div><div class="wname">Africell Money</div>
+              </div>
+              <div class="wallet-option" id="wallet-qmoney" onclick="selectWallet('qmoney')">
+                <div class="wicon">🔵</div><div class="wname">QMoney</div>
+              </div>
+              <div class="wallet-option" id="wallet-gtb" onclick="selectWallet('gtb')">
+                <div class="wicon">🟢</div><div class="wname">GTBank Mobile</div>
+              </div>
+            </div>
+            <div style="margin-top:16px">
+              <div class="form-group">
+                <label>Mobile Money Number (+232)</label>
+                <input type="tel" id="mobile-number" placeholder="07X XXX XXXX" />
+              </div>
+            </div>
+          </div>
+
+          <!-- BANK TRANSFER -->
+          <div id="tab-bank" style="display:none">
+            <div class="alert alert-info">ℹ️ Transfer the exact amount below. Your booking will be confirmed within 15 minutes of receipt.</div>
+            <div class="bank-info">
+              <div class="bank-row"><span class="lbl">Bank</span><span class="val">Sierra Leone Commercial Bank</span></div>
+              <div class="bank-row"><span class="lbl">Account Name</span><span class="val">Angel Transportation SL Ltd</span></div>
+              <div class="bank-row">
+                <span class="lbl">Account No.</span>
+                <span class="val">1100045678 <button class="copy-btn" onclick="copyText('1100045678')">Copy</button></span>
+              </div>
+              <div class="bank-row"><span class="lbl">Sort Code</span><span class="val">056-004</span></div>
+              <div class="bank-row"><span class="lbl">Amount</span><span class="val" id="bank-amount">Le 0</span></div>
+              <div class="bank-row"><span class="lbl">Reference</span><span class="val" id="bank-ref-display">—</span></div>
+            </div>
+            <div class="alert alert-warn mt-16">⚠️ Use the reference as your payment narration for quick confirmation.</div>
+          </div>
+        </div>
+
+        <button class="btn btn-success btn-full btn-lg" id="payBtn" onclick="processPayment()">
+          🔒 Pay <span id="pay-btn-amount">Le 0</span>
+        </button>
+      </div>
+
+      <div>
+        <div class="booking-sidebar">
+          <div class="sidebar-title">Order Summary</div>
+          <div class="summary-row"><span class="label">Route</span><span class="val" id="pay-route">—</span></div>
+          <div class="summary-row"><span class="label">Departure</span><span class="val" id="pay-dep">—</span></div>
+          <div class="summary-row"><span class="label">Passenger(s)</span><span class="val" id="pay-passengers">—</span></div>
+          <div class="summary-row" id="pay-children-row" style="display:none"><span class="label">Children</span><span class="val" id="pay-children">—</span></div>
+          <div class="summary-row"><span class="label">Seat(s)</span><span class="val" id="pay-seats">—</span></div>
+          <div class="summary-row"><span class="label">Base fare</span><span class="val" id="pay-fare">—</span></div>
+          <div class="summary-row" id="pay-child-fare-row" style="display:none"><span class="label">Children fare</span><span class="val" id="pay-child-fare">—</span></div>
+          <div class="summary-row"><span class="label">Insurance</span><span class="val" id="pay-insurance">—</span></div>
+          <div class="summary-row"><span class="label">Extra luggage</span><span class="val" id="pay-luggage">—</span></div>
+          <div class="summary-row"><span class="label">Service fee</span><span class="val">Le 5,000</span></div>
+          <div class="total-row"><span class="label">Total</span><span class="val" id="pay-total">—</span></div>
+        </div>
+        <p style="font-size:.75rem;color:var(--gray-400);margin-top:12px;text-align:center;line-height:1.6">
+          Seats held for <strong>10 minutes</strong>.<br>Unpaid bookings are automatically released.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONFIRMATION ==================== -->
+<div class="screen" id="screen-confirmation">
+  <div class="page-wrap" style="max-width:600px">
+    <div class="confirm-hero">
+      <div class="success-icon">✓</div>
+      <h2>Booking Confirmed!</h2>
+      <p>Your Angel Transportation ticket is ready.</p>
+      <p>An SMS confirmation has been sent to your phone.</p>
+      <div class="booking-ref" id="conf-ref">ANG-000000</div>
+    </div>
+
+    <div class="ticket-card">
+      <div class="ticket-header">
+        <div class="tlogo">Angel Transportation 🇸🇱</div>
+        <div style="font-size:.8rem;opacity:.8">E-TICKET</div>
+      </div>
+      <div class="ticket-route">
+        <div class="ticket-city">
+          <div class="name" id="ticket-from">Freetown</div>
+          <div class="code" id="ticket-from-code">FNA</div>
+        </div>
+        <div style="color:var(--gray-400);font-size:1.2rem">→</div>
+        <div class="ticket-city">
+          <div class="name" id="ticket-to">Bo</div>
+          <div class="code" id="ticket-to-code">BOA</div>
+        </div>
+      </div>
+      <div class="ticket-details">
+        <div class="ticket-field"><div class="flabel">Date</div><div class="fval" id="ticket-date">—</div></div>
+        <div class="ticket-field"><div class="flabel">Departure</div><div class="fval" id="ticket-dep">—</div></div>
+        <div class="ticket-field"><div class="flabel">Arrival</div><div class="fval" id="ticket-arr">—</div></div>
+        <div class="ticket-field"><div class="flabel">Service</div><div class="fval" id="ticket-operator">—</div></div>
+        <div class="ticket-field"><div class="flabel">Seat(s)</div><div class="fval" id="ticket-seats">—</div></div>
+        <div class="ticket-field"><div class="flabel">Class</div><div class="fval" id="ticket-class">—</div></div>
+      </div>
+      <div class="qr-section">
+        <!-- Real QR injected from backend after payment confirmation -->
+        <div id="qr-container" style="width:120px;height:120px;margin:0 auto;display:flex;align-items:center;justify-content:center;background:var(--gray-100);border-radius:8px;font-size:2rem">▦</div>
+        <p>Scan at boarding gate</p>
+      </div>
+    </div>
+
+    <div class="confirm-actions">
+      <button class="btn btn-outline btn-lg" onclick="window.print()">🖨️ Print Ticket</button>
+      <button class="btn btn-primary btn-lg" onclick="goHome()">Book Another Trip</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MY TRIPS ==================== -->
+<div class="screen" id="screen-trips">
+  <div class="page-wrap" style="max-width:780px">
+    <div class="page-header">
+      <button class="back-btn" onclick="goHome()">←</button>
+      <div><h2>My Trips</h2><div class="sub" id="trips-sub">Your booking history</div></div>
+    </div>
+    <div id="trips-container">
+      <div class="trips-empty">
+        <div class="empty-icon">🎫</div>
+        <p>Loading your trips…</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+  // ── Bus data (mirrors server — frontend uses for display only; server recalculates fares) ──
+  const BUSES = [
+    { id:1, operator:'Angel VIP Express',   code:'VIP', color:'#1EB53A', type:'VIP AC',        dep:'06:00', arr:'10:00', duration:'4h 00m', amenities:['AC','WiFi','USB Port','Recliner'], baseFare:250000, totalSeats:36 },
+    { id:2, operator:'Angel Executive',      code:'EXE', color:'#059669', type:'Executive AC',   dep:'07:30', arr:'12:00', duration:'4h 30m', amenities:['AC','USB Port'],                    baseFare:200000, totalSeats:40 },
+    { id:3, operator:'Angel Business Coach', code:'BUS', color:'#7c3aed', type:'Business Class', dep:'09:00', arr:'14:00', duration:'5h 00m', amenities:['AC','Recliner'],                    baseFare:180000, totalSeats:44 },
+    { id:4, operator:'Angel Express',        code:'EXP', color:'#dc2626', type:'Standard AC',    dep:'10:00', arr:'15:30', duration:'5h 30m', amenities:['AC'],                                baseFare:150000, totalSeats:50 },
+    { id:5, operator:'Angel Night Rider',    code:'NGT', color:'#0f172a', type:'Overnight AC',   dep:'20:00', arr:'01:00', duration:'5h 00m', amenities:['AC','Blanket','Snack'],              baseFare:190000, totalSeats:40 },
+    { id:6, operator:'Angel Economy Plus',   code:'ECO', color:'#d97706', type:'Economy',        dep:'12:00', arr:'18:00', duration:'6h 00m', amenities:['Fan'],                               baseFare:100000, totalSeats:54 },
+  ];
+
+  const ROUTE_MULTIPLIERS = {
+    'Freetown-Bo':1.0,'Freetown-Kenema':1.35,'Freetown-Makeni':0.80,
+    'Freetown-Koidu (Kono)':1.70,'Freetown-Kailahun':1.90,'Freetown-Port Loko':0.55,
+    'Freetown-Kambia':0.80,'Freetown-Kabala':1.30,'Freetown-Magburaka':0.90,
+    'Freetown-Lunsar':0.50,'Freetown-Waterloo':0.15,'Freetown-Pujehun':1.20,
+    'Freetown-Moyamba':0.65,'Freetown-Bonthe':1.40,'Freetown-Mattru Jong':1.10,
+    'Freetown-Lungi':0.20,'Freetown-Bumbuna':1.10,'Freetown-Falaba':1.60,
+    'Freetown-Pendembu':1.75,'Freetown-Daru':1.80,'Freetown-Segbwema':1.45,
+    'Freetown-Blama':1.20,'Freetown-Zimmi':1.50,
+    'Bo-Kenema':0.50,'Bo-Pujehun':0.55,'Bo-Moyamba':0.40,'Bo-Mattru Jong':0.60,
+    'Bo-Blama':0.45,'Bo-Zimmi':0.70,'Bo-Tikonko':0.15,'Bo-Bumpe':0.25,'Bo-Mano':0.30,
+    'Kenema-Kailahun':0.70,'Kenema-Koidu (Kono)':0.80,'Kenema-Segbwema':0.35,
+    'Kenema-Pendembu':0.65,'Kenema-Daru':0.75,'Kenema-Panguma':0.30,
+    'Makeni-Kabala':0.70,'Makeni-Port Loko':0.40,'Makeni-Magburaka':0.30,
+    'Makeni-Binkolo':0.15,'Makeni-Kambia':0.55,'Makeni-Lunsar':0.30,
+    'Makeni-Bumbuna':0.50,'Makeni-Falaba':0.90,
+    'Port Loko-Kambia':0.40,'Port Loko-Lunsar':0.20,'Port Loko-Rokupr':0.25,
+    'Kabala-Falaba':0.45,'Kabala-Gberia Fotombu':0.35,
+    'Koidu (Kono)-Yengema':0.15,'Koidu (Kono)-Sefadu':0.10,'Koidu (Kono)-Gandorhun':0.25,
+    'Kailahun-Daru':0.30,'Kailahun-Buedu':0.35,'Kailahun-Pendembu':0.40,
+  };
+
+  const CITY_CODES = {
+    'Freetown':'FNA','Bo':'BOA','Kenema':'KEN','Makeni':'MKN','Koidu (Kono)':'KDU',
+    'Kailahun':'KLH','Port Loko':'PLK','Kambia':'KMB','Kabala':'KBL','Magburaka':'MGB',
+    'Lunsar':'LNS','Waterloo':'WTL','Pujehun':'PJH','Moyamba':'MYB','Bonthe':'BTH',
+    'Mattru Jong':'MTJ','Lungi':'LNG','Daru':'DRU','Pendembu':'PDM','Segbwema':'SGW',
+    'Falaba':'FLB','Binkolo':'BNK','Rokupr':'RKP','Blama':'BLM','Zimmi':'ZMI',
+    'Bumpe':'BMP','Rotifunk':'RTF','Hastings':'HST','Wellington':'WLN','Bumbuna':'BMB',
+    'Yengema':'YNG','Gberia Fotombu':'GBF','Buedu':'BDU','Sefadu':'SFD',
+  };
+
+  // ── App state ──────────────────────────────────────────────────────────────
+  let state = {
+    from:'', to:'', date:'', passengers:1,
+    selectedBus:null, selectedSeats:[], bookedSeats:[],
+    passengerData:[], children:[], extras:{ insurance:false, luggage:false },
+    paymentTab:'card', selectedWallet:'orange',
+    txRef:'', bookingRef:'', totalAmount:0,
+  };
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    const today = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    document.getElementById('travelDate').value = today;
+    document.getElementById('travelDate').min   = today;
+  });
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  function goHome() {
+    state = { from:'',to:'',date:'',passengers:1, selectedBus:null, selectedSeats:[],
+      bookedSeats:[], passengerData:[], children:[], extras:{insurance:false,luggage:false},
+      paymentTab:'card', selectedWallet:'orange', txRef:'', bookingRef:'', totalAmount:0 };
+    showScreen('home');
+  }
+
+  async function showMyTrips() {
+    if (!authUser) { openModal('loginModal'); return; }
+    showScreen('trips');
+    document.getElementById('trips-sub').textContent = `Logged in as ${authUser.firstName} ${authUser.lastName}`;
+    document.getElementById('trips-container').innerHTML = '<div class="trips-empty"><div class="empty-icon">⏳</div><p>Loading your trips…</p></div>';
+    try {
+      const res = await fetch(`/api/user/trips/${authUser.id}`);
+      const { trips } = await res.json();
+      renderMyTrips(trips);
+    } catch(e) {
+      document.getElementById('trips-container').innerHTML = '<div class="trips-empty"><div class="empty-icon">⚠️</div><p>Could not load trips. Please try again.</p></div>';
+    }
+  }
+
+  function renderMyTrips(trips) {
+    const container = document.getElementById('trips-container');
+    if (!trips || !trips.length) {
+      container.innerHTML = `<div class="trips-empty">
+        <div class="empty-icon">🎫</div>
+        <p>No trips yet! Book your first journey below.</p>
+        <button class="btn btn-primary btn-lg" onclick="goHome()">Book a Trip</button>
+      </div>`;
+      return;
+    }
+    const statusLabel = { confirmed:'Confirmed', pending:'Awaiting Payment', failed:'Payment Failed', expired:'Expired' };
+    container.innerHTML = trips.map(t => `
+      <div class="trip-card ${t.status}">
+        <div class="trip-card-header">
+          <div>
+            <div class="trip-ref">${t.ref}</div>
+            <div class="trip-route">${t.from} → ${t.to}</div>
+          </div>
+          <span class="trip-status ${t.status}">${statusLabel[t.status] || t.status}</span>
+        </div>
+        <div class="trip-details">
+          <div class="trip-detail-item"><strong>${fmtDate(t.date)}</strong>Date</div>
+          <div class="trip-detail-item"><strong>${t.seats ? t.seats.join(', ') : '—'}</strong>Seat(s)</div>
+          <div class="trip-detail-item"><strong>${t.passengers ? t.passengers.length : 0} Adult${(t.passengers||[]).length!==1?'s':''}</strong>Passengers</div>
+          ${t.children && t.children.length ? `<div class="trip-detail-item"><strong>${t.children.length} Child${t.children.length!==1?'ren':''}</strong>Children</div>` : ''}
+          <div class="trip-detail-item"><strong>Le ${(t.totalAmount||0).toLocaleString()}</strong>Amount</div>
+        </div>
+        ${t.status==='confirmed' && t.qrCode ? `
+        <div class="trip-qr">
+          <img src="${t.qrCode}" width="80" height="80" alt="QR Code"/>
+          <div class="trip-qr-text">
+            <strong>E-Ticket Ready</strong><br>
+            Show this QR code at the boarding gate
+          </div>
+        </div>` : ''}
+        ${t.status==='pending' ? '<div class="alert alert-warn" style="margin-top:12px;font-size:.82rem">⏳ Payment pending — complete payment or your seat will be released in 10 minutes.</div>' : ''}
+      </div>`).join('');
+  }
+
+  // ── AUTH ────────────────────────────────────────────────────────────────────
+  let authUser = null;
+
+  (function restoreSession() {
+    try {
+      const saved = localStorage.getItem('angelUser');
+      if (saved) { authUser = JSON.parse(saved); updateNavAuth(); }
+    } catch(e) { localStorage.removeItem('angelUser'); }
+  })();
+
+  function updateNavAuth() {
+    const navAuth = document.getElementById('navAuth');
+    const navUser = document.getElementById('navUser');
+    const greeting = document.getElementById('userGreeting');
+    if (authUser) {
+      navAuth.style.display = 'none';
+      navUser.style.display = 'flex';
+      greeting.textContent = `👋 Hi, ${authUser.firstName}`;
+    } else {
+      navAuth.style.display = 'flex';
+      navUser.style.display = 'none';
+    }
+  }
+
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+    clearAuthErrors();
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+    clearAuthErrors();
+  }
+
+  function closeModalOutside(e, id) {
+    if (e.target === document.getElementById(id)) closeModal(id);
+  }
+
+  function switchModal(closeId, openId) {
+    closeModal(closeId);
+    setTimeout(() => openModal(openId), 120);
+  }
+
+  function clearAuthErrors() {
+    ['signup-error','login-error'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.display = 'none'; el.textContent = ''; }
+    });
+  }
+
+  function showAuthError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.style.display = 'flex';
+  }
+
+  async function submitSignup() {
+    const firstName = document.getElementById('su-first').value.trim();
+    const lastName  = document.getElementById('su-last').value.trim();
+    const email     = document.getElementById('su-email').value.trim();
+    const phone     = document.getElementById('su-phone').value.trim();
+    const pass      = document.getElementById('su-pass').value;
+    const pass2     = document.getElementById('su-pass2').value;
+
+    if (!firstName || !lastName || !email || !pass) return showAuthError('signup-error','Please fill in all required fields.');
+    if (pass.length < 6) return showAuthError('signup-error','Password must be at least 6 characters.');
+    if (pass !== pass2) return showAuthError('signup-error','Passwords do not match.');
+
+    const btn = document.getElementById('signupBtn');
+    btn.textContent = 'Creating account…'; btn.classList.add('btn-loading');
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ firstName, lastName, email, phone, password: pass })
+      });
+      const data = await res.json();
+      if (!res.ok) { showAuthError('signup-error', data.error || 'Registration failed.'); return; }
+      authUser = data.user;
+      localStorage.setItem('angelUser', JSON.stringify(authUser));
+      updateNavAuth();
+      closeModal('signupModal');
+      showWelcomeBanner(authUser.firstName);
+    } catch(e) {
+      showAuthError('signup-error', 'Network error. Please try again.');
+    } finally {
+      btn.textContent = 'Create Account'; btn.classList.remove('btn-loading');
+    }
+  }
+
+  async function submitLogin() {
+    const email = document.getElementById('li-email').value.trim();
+    const pass  = document.getElementById('li-pass').value;
+    if (!email || !pass) return showAuthError('login-error','Please enter your email and password.');
+
+    const btn = document.getElementById('loginBtn');
+    btn.textContent = 'Logging in…'; btn.classList.add('btn-loading');
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email, password: pass })
+      });
+      const data = await res.json();
+      if (!res.ok) { showAuthError('login-error', data.error || 'Login failed.'); return; }
+      authUser = data.user;
+      localStorage.setItem('angelUser', JSON.stringify(authUser));
+      updateNavAuth();
+      closeModal('loginModal');
+      showWelcomeBanner(authUser.firstName);
+    } catch(e) {
+      showAuthError('login-error', 'Network error. Please try again.');
+    } finally {
+      btn.textContent = 'Log In'; btn.classList.remove('btn-loading');
+    }
+  }
+
+  function logout() {
+    authUser = null;
+    localStorage.removeItem('angelUser');
+    updateNavAuth();
+  }
+
+  function showWelcomeBanner(name) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:72px;left:50%;transform:translateX(-50%);background:#1EB53A;color:#fff;padding:12px 24px;border-radius:10px;font-weight:700;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,.2);font-size:.95rem;';
+    banner.textContent = `Welcome to Angel Transportation, ${name}! 🎉`;
+    document.body.appendChild(banner);
+    setTimeout(() => banner.remove(), 3500);
+  }
+
+  // ── Home ──────────────────────────────────────────────────────────────────
+  function swapCities() {
+    const f = document.getElementById('fromCity'), t = document.getElementById('toCity');
+    [f.value, t.value] = [t.value, f.value];
+  }
+
+  function quickBook(from, to) {
+    document.getElementById('fromCity').value = from;
+    document.getElementById('toCity').value = to;
+    searchBuses();
+  }
+
+  function searchBuses() {
+    const from = document.getElementById('fromCity').value;
+    const to   = document.getElementById('toCity').value;
+    const date = document.getElementById('travelDate').value;
+    const passengers = parseInt(document.getElementById('passengers').value);
+    if (!from) return alert('Please select a departure location.');
+    if (!to)   return alert('Please select a destination.');
+    if (from === to) return alert('Departure and destination cannot be the same.');
+    if (!date) return alert('Please select a travel date.');
+    state.from = from; state.to = to; state.date = date; state.passengers = passengers;
+    renderResults();
+    showScreen('results');
+  }
+
+  // ── Results ───────────────────────────────────────────────────────────────
+  function getFare(bus) {
+    const key = `${state.from}-${state.to}`;
+    const rev = `${state.to}-${state.from}`;
+    const m = ROUTE_MULTIPLIERS[key] || ROUTE_MULTIPLIERS[rev] || 0.75;
+    return Math.round((bus.baseFare * m) / 1000) * 1000;
+  }
+
+  function renderResults() {
+    document.getElementById('results-title').textContent = `${state.from} → ${state.to}`;
+    const d = new Date(state.date);
+    document.getElementById('results-sub').textContent =
+      `${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})} · ${state.passengers} Passenger${state.passengers>1?'s':''}`;
+    const list = document.getElementById('bus-list');
+    list.innerHTML = '';
+    BUSES.forEach(bus => {
+      const fare = getFare(bus);
+      const booked = Math.floor(rng() * (bus.totalSeats * 0.55));
+      const avail  = bus.totalSeats - booked;
+      const badgeHtml = bus.amenities.map(a => {
+        const cls = a==='AC'?'badge-blue':a==='WiFi'?'badge-green':a==='Recliner'||a==='USB Port'?'badge-orange':'badge-gray';
+        return `<span class="badge ${cls}">${a}</span>`;
+      }).join('');
+      const card = document.createElement('div');
+      card.className = 'bus-card';
+      card.innerHTML = `
+        <div class="operator-badge" style="background:${bus.color}">${bus.code}</div>
+        <div>
+          <div class="bus-name">${bus.operator}</div>
+          <div class="bus-meta">${badgeHtml}<span class="badge badge-gray">${bus.type}</span></div>
+          <div class="bus-times">
+            <div class="time-block"><div class="time">${bus.dep}</div><div class="city">${state.from}</div></div>
+            <div class="duration-line"><div class="dur">${bus.duration}</div><div class="line"></div></div>
+            <div class="time-block"><div class="time">${bus.arr}</div><div class="city">${state.to}</div></div>
+          </div>
+        </div>
+        <div class="bus-price">
+          <div class="amount">Le ${fare.toLocaleString()}</div>
+          <div class="per">per passenger</div>
+          <div class="seats">✓ ${avail} seats left</div>
+          <button class="btn btn-primary" style="margin-top:12px;width:100%" onclick="event.stopPropagation();selectBus(${bus.id},${booked})">Select Seats</button>
+        </div>`;
+      list.appendChild(card);
+    });
+  }
+
+  // ── Seat selection ────────────────────────────────────────────────────────
+  function selectBus(busId, bookedCount) {
+    const bus = BUSES.find(b => b.id === busId);
+    state.selectedBus = bus;
+    state.selectedSeats = [];
+    const all = [];
+    const rows = Math.ceil(bus.totalSeats / 4);
+    for (let r=1;r<=rows;r++) ['A','B','C','D'].forEach(c => all.push(`${r}${c}`));
+    state.bookedSeats = [...all].sort(()=>rng()-.5).slice(0, bookedCount);
+
+    document.getElementById('seat-sub').textContent = `${bus.operator} · ${state.from} → ${state.to}`;
+    const fare = getFare(bus);
+    document.getElementById('sum-route').textContent      = `${state.from} → ${state.to}`;
+    document.getElementById('sum-date').textContent       = fmtDate(state.date);
+    document.getElementById('sum-operator').textContent   = bus.operator;
+    document.getElementById('sum-dep').textContent        = bus.dep;
+    document.getElementById('sum-class').textContent      = bus.type;
+    document.getElementById('sum-price-each').textContent = `Le ${fare.toLocaleString()}`;
+    document.getElementById('seats-needed').textContent   = state.passengers;
+
+    renderSeatMap(bus);
+    showScreen('seats');
+  }
+
+  function renderSeatMap(bus) {
+    const grid = document.getElementById('seat-grid');
+    grid.innerHTML = '';
+    const rows = Math.ceil(bus.totalSeats / 4);
+    for (let r=1;r<=rows;r++) {
+      const row = document.createElement('div');
+      row.className = 'seat-row';
+      row.innerHTML = `<div class="row-num">${r}</div>`;
+      ['A','B'].forEach(c => row.appendChild(makeSeat(`${r}${c}`)));
+      const aisle = document.createElement('div'); aisle.className='aisle'; row.appendChild(aisle);
+      ['C','D'].forEach(c => row.appendChild(makeSeat(`${r}${c}`)));
+      grid.appendChild(row);
+    }
+  }
+
+  function makeSeat(id) {
+    const el = document.createElement('div');
+    const col = id.replace(/\d/g,'');
+    el.className = `seat${state.bookedSeats.includes(id) ? ' booked' : ''}`;
+    el.textContent = col;
+    el.dataset.id = id;
+    if (!state.bookedSeats.includes(id)) el.onclick = () => toggleSeat(id, el);
+    return el;
+  }
+
+  function toggleSeat(id, el) {
+    const idx = state.selectedSeats.indexOf(id);
+    if (idx > -1) { state.selectedSeats.splice(idx,1); el.classList.remove('selected'); }
+    else {
+      if (state.selectedSeats.length >= state.passengers) {
+        const first = state.selectedSeats.shift();
+        document.querySelector(`.seat[data-id="${first}"]`)?.classList.remove('selected');
+      }
+      state.selectedSeats.push(id); el.classList.add('selected');
+    }
+    updateSeatSummary();
+  }
+
+  function updateSeatSummary() {
+    const fare = getFare(state.selectedBus);
+    const sel = state.selectedSeats.length;
+    document.getElementById('sum-seats').textContent  = sel ? state.selectedSeats.join(', ') : 'None selected';
+    document.getElementById('sum-total').textContent  = `Le ${(fare * sel).toLocaleString()}`;
+    const btn = document.getElementById('continueBtn');
+    btn.disabled = sel !== state.passengers;
+    document.getElementById('seat-hint').innerHTML = sel === state.passengers
+      ? `${sel} seat(s) selected`
+      : `Select <span id="seats-needed">${state.passengers - sel}</span> more seat(s)`;
+  }
+
+  // ── Passenger details ─────────────────────────────────────────────────────
+  function goToPassenger() {
+    if (state.selectedSeats.length !== state.passengers) return;
+    state.children = [];
+    const container = document.getElementById('passenger-forms');
+    container.innerHTML = '';
+    for (let i=0; i<state.passengers; i++) {
+      const card = document.createElement('div');
+      card.className = 'section-card';
+      card.innerHTML = `
+        <h3>Passenger ${i+1} — Seat ${state.selectedSeats[i]}</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>First Name *</label><input type="text" id="p${i}-first" placeholder="First name"/></div>
+          <div class="form-group"><label>Last Name *</label><input type="text" id="p${i}-last" placeholder="Last name"/></div>
+          <div class="form-group"><label>Email *</label><input type="email" id="p${i}-email" placeholder="email@example.com"/></div>
+          <div class="form-group"><label>Phone (+232) *</label><input type="tel" id="p${i}-phone" placeholder="07X XXX XXXX"/></div>
+          <div class="form-group"><label>ID Type</label>
+            <select id="p${i}-idtype">
+              <option value="">Select ID</option>
+              <option>National ID Card (NIC)</option>
+              <option>International Passport</option>
+              <option>Driver's Licence</option>
+              <option>Voter's ID Card</option>
+            </select>
+          </div>
+          <div class="form-group"><label>ID Number</label><input type="text" id="p${i}-idnum" placeholder="ID number"/></div>
+        </div>`;
+      container.appendChild(card);
+    }
+    document.getElementById('children-list').innerHTML = '';
+    updatePassengerSidebar();
+    showScreen('passenger');
+  }
+
+  function updatePassengerSidebar() {
+    const fare = getFare(state.selectedBus);
+    const base = fare * state.passengers;
+    const childFare = calcChildrenFare(fare);
+    document.getElementById('ps-route').textContent = `${state.from} → ${state.to}`;
+    document.getElementById('ps-date').textContent  = fmtDate(state.date);
+    document.getElementById('ps-dep').textContent   = state.selectedBus.dep;
+    document.getElementById('ps-seats').textContent = state.selectedSeats.join(', ');
+    document.getElementById('ps-fare').textContent  = `Le ${base.toLocaleString()}`;
+    const childRow = document.getElementById('ps-children-row');
+    if (childFare > 0) {
+      childRow.style.display = 'flex';
+      document.getElementById('ps-children-fare').textContent = `Le ${childFare.toLocaleString()}`;
+    } else {
+      childRow.style.display = 'none';
+    }
+    document.getElementById('ps-total').textContent = `Le ${(base + childFare + 5000).toLocaleString()}`;
+  }
+
+  function calcChildrenFare(adultFare) {
+    return state.children.reduce((sum, c) => {
+      const age = parseInt(c.age) || 0;
+      return sum + (age >= 3 && age <= 11 ? Math.round(adultFare * 0.5) : 0);
+    }, 0);
+  }
+
+  function addChild() {
+    const idx = state.children.length;
+    state.children.push({ firstName:'', lastName:'', age:'' });
+    const list = document.getElementById('children-list');
+    const card = document.createElement('div');
+    card.className = 'child-card';
+    card.id = `child-card-${idx}`;
+    card.innerHTML = `
+      <div class="child-card-header">
+        <span>Child ${idx+1}</span>
+        <button class="remove-child-btn" onclick="removeChild(${idx})" title="Remove">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" id="c${idx}-first" placeholder="Child's first name" oninput="syncChild(${idx})"/>
+        </div>
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input type="text" id="c${idx}-last" placeholder="Child's last name" oninput="syncChild(${idx})"/>
+        </div>
+        <div class="form-group">
+          <label>Age (years) *</label>
+          <select id="c${idx}-age" onchange="syncChild(${idx})">
+            <option value="">Select age</option>
+            ${Array.from({length:12},(_,i)=>`<option value="${i}">${i===0?'Under 1':i} yr${i!==1?'s':''}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Gender</label>
+          <select id="c${idx}-gender" onchange="syncChild(${idx})">
+            <option value="">Select</option>
+            <option>Boy</option><option>Girl</option>
+          </select>
+        </div>
+      </div>
+      <div class="child-fare-note" id="c${idx}-note">Select age to see fare</div>`;
+    list.appendChild(card);
+  }
+
+  function syncChild(idx) {
+    const age    = parseInt(document.getElementById(`c${idx}-age`)?.value) || -1;
+    const first  = document.getElementById(`c${idx}-first`)?.value.trim() || '';
+    const last   = document.getElementById(`c${idx}-last`)?.value.trim() || '';
+    const gender = document.getElementById(`c${idx}-gender`)?.value || '';
+    if (state.children[idx]) state.children[idx] = { firstName:first, lastName:last, age: age >= 0 ? age : '', gender };
+    const note = document.getElementById(`c${idx}-note`);
+    if (note) {
+      if (age < 0) note.textContent = 'Select age to see fare';
+      else if (age <= 2) note.textContent = '👶 Infant — travels FREE (lap seat)';
+      else note.textContent = `🧒 Child — 50% off adult fare (Le ${Math.round(getFare(state.selectedBus)*0.5).toLocaleString()})`;
+    }
+    updatePassengerSidebar();
+  }
+
+  function removeChild(idx) {
+    state.children.splice(idx, 1);
+    const list = document.getElementById('children-list');
+    list.innerHTML = '';
+    const saved = [...state.children];
+    state.children = [];
+    saved.forEach(() => addChild());
+    saved.forEach((c, i) => {
+      if (document.getElementById(`c${i}-first`)) document.getElementById(`c${i}-first`).value = c.firstName || '';
+      if (document.getElementById(`c${i}-last`))  document.getElementById(`c${i}-last`).value  = c.lastName  || '';
+      if (document.getElementById(`c${i}-age`))   document.getElementById(`c${i}-age`).value   = c.age !== '' ? c.age : '';
+      if (document.getElementById(`c${i}-gender`)) document.getElementById(`c${i}-gender`).value = c.gender || '';
+      syncChild(i);
+    });
+    updatePassengerSidebar();
+  }
+
+  function goToPayment() {
+    const passengers = [];
+    for (let i=0; i<state.passengers; i++) {
+      const first = document.getElementById(`p${i}-first`).value.trim();
+      const last  = document.getElementById(`p${i}-last`).value.trim();
+      const email = document.getElementById(`p${i}-email`).value.trim();
+      const phone = document.getElementById(`p${i}-phone`).value.trim();
+      if (!first || !last || !email || !phone) {
+        return alert(`Please fill in all required fields for Passenger ${i+1}.`);
+      }
+      passengers.push({ first, last, email, phone });
+    }
+    // Validate children
+    for (let i=0; i<state.children.length; i++) {
+      const c = state.children[i];
+      if (!c.firstName || !c.lastName || c.age === '') {
+        return alert(`Please fill in the name and age for Child ${i+1}.`);
+      }
+    }
+    state.passengerData = passengers;
+    state.extras.insurance = document.getElementById('opt-insurance').checked;
+    state.extras.luggage   = document.getElementById('opt-luggage').checked;
+    updatePaymentSummary();
+    showScreen('payment');
+  }
+
+  // ── Payment summary ───────────────────────────────────────────────────────
+  function updatePaymentSummary() {
+    const fare       = getFare(state.selectedBus);
+    const base       = fare * state.passengers;
+    const childFare  = calcChildrenFare(fare);
+    const insurance  = state.extras.insurance ? 10000 * state.passengers : 0;
+    const luggage    = state.extras.luggage   ? 20000 : 0;
+    const total      = base + childFare + insurance + luggage + 5000;
+    state.totalAmount = total;
+
+    document.getElementById('pay-route').textContent      = `${state.from} → ${state.to}`;
+    document.getElementById('pay-dep').textContent        = `${fmtDate(state.date)} at ${state.selectedBus.dep}`;
+    document.getElementById('pay-passengers').textContent = `${state.passengers} Adult${state.passengers>1?'s':''}`;
+    document.getElementById('pay-seats').textContent      = state.selectedSeats.join(', ');
+    document.getElementById('pay-fare').textContent       = `Le ${base.toLocaleString()}`;
+    document.getElementById('pay-insurance').textContent  = insurance > 0 ? `Le ${insurance.toLocaleString()}` : 'Not added';
+    document.getElementById('pay-luggage').textContent    = luggage   > 0 ? `Le ${luggage.toLocaleString()}`   : 'Not added';
+    document.getElementById('pay-total').textContent      = `Le ${total.toLocaleString()}`;
+    document.getElementById('pay-btn-amount').textContent = `Le ${total.toLocaleString()}`;
+    document.getElementById('bank-amount').textContent    = `Le ${total.toLocaleString()}`;
+
+    const childRow     = document.getElementById('pay-children-row');
+    const childFareRow = document.getElementById('pay-child-fare-row');
+    if (state.children.length > 0) {
+      childRow.style.display = 'flex';
+      const labels = state.children.map(c => `${c.firstName} (age ${c.age})`).join(', ');
+      document.getElementById('pay-children').textContent = labels;
+      if (childFare > 0) {
+        childFareRow.style.display = 'flex';
+        document.getElementById('pay-child-fare').textContent = `Le ${childFare.toLocaleString()}`;
+      } else {
+        childFareRow.style.display = 'none';
+        document.getElementById('pay-child-fare').textContent = 'Free (infants)';
+      }
+    } else {
+      childRow.style.display = 'none';
+      childFareRow.style.display = 'none';
+    }
+  }
+
+  function switchPayTab(tab, btn) {
+    document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    ['card','mobile','bank'].forEach(t =>
+      document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none'
+    );
+    state.paymentTab = tab;
+  }
+
+  function selectWallet(name) {
+    document.querySelectorAll('.wallet-option').forEach(w => w.classList.remove('selected'));
+    document.getElementById('wallet-'+name)?.classList.add('selected');
+    state.selectedWallet = name;
+  }
+
+  // ── Process payment — calls backend, then Flutterwave ─────────────────────
+  async function processPayment() {
+    const payBtn = document.getElementById('payBtn');
+    const errBox = document.getElementById('payment-error');
+    errBox.style.display = 'none';
+
+    payBtn.disabled = true;
+    payBtn.textContent = 'Creating booking…';
+
+    try {
+      // 1. Create pending booking on backend (starts 10-min seat-hold timer)
+      const res = await fetch('/api/booking/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from:       state.from,
+          to:         state.to,
+          date:       state.date,
+          busId:      state.selectedBus.id,
+          seats:      state.selectedSeats,
+          passengers: state.passengerData,
+          children:   state.children,
+          extras:     state.extras,
+          userId:     authUser ? authUser.id : null,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to create booking. Please try again.');
+      }
+
+      const { bookingRef, txRef, totalAmount, publicKey, primaryPassenger } = await res.json();
+      state.txRef       = txRef;
+      state.bookingRef  = bookingRef;
+      state.totalAmount = totalAmount;
+
+      document.getElementById('bank-ref-display').textContent = bookingRef;
+
+      // 2. Launch Flutterwave checkout modal
+      FlutterwaveCheckout({
+        public_key:      publicKey,
+        tx_ref:          txRef,
+        amount:          totalAmount,
+        currency:        'SLL',
+        // card, mobilemoneysierraleone — Flutterwave routes Orange/Africell via USSD push
+        payment_options: 'card,mobilemoneysierraleone',
+        customer: {
+          email:        primaryPassenger.email,
+          phone_number: primaryPassenger.phone,
+          name:         `${primaryPassenger.first} ${primaryPassenger.last}`,
+        },
+        customizations: {
+          title:       'Angel Transportation',
+          description: `${state.from} → ${state.to} on ${fmtDate(state.date)}`,
+        },
+        meta: { booking_ref: bookingRef },
+
+        callback: function(data) {
+          // Payment completed in the modal — now poll backend for webhook confirmation
+          if (data.status === 'successful' || data.status === 'completed') {
+            showPollingOverlay();
+            pollBookingStatus(txRef);
+          } else {
+            resetPayBtn();
+            showPaymentError('Payment was not successful. Please try again.');
+          }
+        },
+
+        onclose: function() {
+          // User closed the modal without paying — booking stays pending for 10 min
+          resetPayBtn();
+        },
+      });
+
+    } catch (err) {
+      resetPayBtn();
+      showPaymentError(err.message);
+    }
+  }
+
+  // ── Poll /api/booking/status until confirmed, failed, or expired ──────────
+  async function pollBookingStatus(txRef) {
+    const MAX = 90;   // 90 × 2 s = 3 minutes max
+    let attempts = 0;
+
+    // Animate processing steps
+    setTimeout(() => setStep('step-verify','done'), 1500);
+    setTimeout(() => setStep('step-ticket','active'), 3000);
+
+    const tick = async () => {
+      attempts++;
+      try {
+        const res  = await fetch(`/api/booking/status/${encodeURIComponent(txRef)}`);
+        const data = await res.json();
+
+        if (data.status === 'confirmed') {
+          setStep('step-ticket','done');
+          setStep('step-sms','active');
+          setTimeout(() => {
+            setStep('step-sms','done');
+            document.getElementById('processingOverlay').classList.remove('show');
+            renderConfirmation(data);
+            showScreen('confirmation');
+          }, 1000);
+          return;
+        }
+
+        if (data.status === 'failed' || data.status === 'expired') {
+          document.getElementById('processingOverlay').classList.remove('show');
+          resetPayBtn();
+          showPaymentError(
+            data.status === 'expired'
+              ? 'Booking expired before payment was confirmed. Seats have been released. Please search again.'
+              : 'Payment verification failed. If you were charged, please contact support with reference: ' + txRef
+          );
+          return;
+        }
+
+        if (attempts < MAX) setTimeout(tick, 2000);
+        else {
+          document.getElementById('processingOverlay').classList.remove('show');
+          resetPayBtn();
+          showPaymentError(`Confirmation is taking longer than expected. Please contact support with reference: ${txRef}`);
+        }
+      } catch (_) {
+        if (attempts < MAX) setTimeout(tick, 2000);
+      }
+    };
+
+    tick();
+  }
+
+  function renderConfirmation(data) {
+    document.getElementById('conf-ref').textContent       = state.bookingRef;
+    document.getElementById('ticket-from').textContent    = state.from;
+    document.getElementById('ticket-from-code').textContent = CITY_CODES[state.from] || state.from.substring(0,3).toUpperCase();
+    document.getElementById('ticket-to').textContent      = state.to;
+    document.getElementById('ticket-to-code').textContent = CITY_CODES[state.to] || state.to.substring(0,3).toUpperCase();
+    document.getElementById('ticket-date').textContent    = fmtDate(state.date);
+    document.getElementById('ticket-dep').textContent     = state.selectedBus.dep;
+    document.getElementById('ticket-arr').textContent     = state.selectedBus.arr;
+    document.getElementById('ticket-operator').textContent = state.selectedBus.operator;
+    document.getElementById('ticket-seats').textContent   = state.selectedSeats.join(', ');
+    document.getElementById('ticket-class').textContent   = state.selectedBus.type;
+
+    // Inject real QR code from backend
+    const qrContainer = document.getElementById('qr-container');
+    if (data.qrCode) {
+      qrContainer.innerHTML = `<img src="${data.qrCode}" alt="Booking QR" style="width:120px;height:120px;border-radius:8px;display:block">`;
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function showPollingOverlay() {
+    ['step-payment','step-verify','step-ticket','step-sms'].forEach(id =>
+      document.getElementById(id)?.classList.remove('done','active')
+    );
+    setStep('step-payment','done');
+    setStep('step-verify','active');
+    document.getElementById('processingOverlay').classList.add('show');
+  }
+
+  function setStep(id, cls) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('done','active');
+    el.classList.add(cls);
+  }
+
+  function resetPayBtn() {
+    const btn = document.getElementById('payBtn');
+    btn.disabled = false;
+    btn.innerHTML = `🔒 Pay <span id="pay-btn-amount">Le ${state.totalAmount.toLocaleString()}</span>`;
+  }
+
+  function showPaymentError(msg) {
+    const el = document.getElementById('payment-error');
+    el.textContent = msg;
+    el.style.display = 'flex';
+    el.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+
+  function fmtDate(s) {
+    if (!s) return '—';
+    return new Date(s + 'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => alert('Copied!'));
+    } else {
+      // Fallback for HTTP / older browsers
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      try { document.execCommand('copy'); alert('Copied!'); } catch(e) { alert(text); }
+      document.body.removeChild(ta);
+    }
+  }
+
+  let _seed = Date.now() % 1000000;
+  function rng() { _seed = (_seed*1664525+1013904223)%4294967296; return _seed/4294967296; }
+</script>
+</body>
+</html>

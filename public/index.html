@@ -620,14 +620,14 @@
     <h2>Popular Routes</h2>
     <p class="subtitle">Most booked routes on Angel Transportation</p>
     <div class="routes-grid">
-      <div class="route-chip" onclick="quickBook('Freetown','Bo')"><span>Freetown → Bo</span><span class="price">From Le 150,000</span></div>
-      <div class="route-chip" onclick="quickBook('Freetown','Kenema')"><span>Freetown → Kenema</span><span class="price">From Le 200,000</span></div>
-      <div class="route-chip" onclick="quickBook('Freetown','Makeni')"><span>Freetown → Makeni</span><span class="price">From Le 120,000</span></div>
-      <div class="route-chip" onclick="quickBook('Freetown','Koidu (Kono)')"><span>Freetown → Koidu</span><span class="price">From Le 250,000</span></div>
-      <div class="route-chip" onclick="quickBook('Freetown','Kabala')"><span>Freetown → Kabala</span><span class="price">From Le 180,000</span></div>
-      <div class="route-chip" onclick="quickBook('Bo','Kenema')"><span>Bo → Kenema</span><span class="price">From Le 80,000</span></div>
-      <div class="route-chip" onclick="quickBook('Freetown','Port Loko')"><span>Freetown → Port Loko</span><span class="price">From Le 90,000</span></div>
-      <div class="route-chip" onclick="quickBook('Freetown','Kailahun')"><span>Freetown → Kailahun</span><span class="price">From Le 280,000</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Bo')"><span>Freetown → Bo</span><span class="price">From Le 350</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Kenema')"><span>Freetown → Kenema</span><span class="price">From Le 450</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Makeni')"><span>Freetown → Makeni</span><span class="price">From Le 300</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Koidu (Kono)')"><span>Freetown → Koidu</span><span class="price">From Le 600</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Kabala')"><span>Freetown → Kabala</span><span class="price">From Le 455</span></div>
+      <div class="route-chip" onclick="quickBook('Bo','Kenema')"><span>Bo → Kenema</span><span class="price">From Le 175</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Port Loko')"><span>Freetown → Port Loko</span><span class="price">From Le 193</span></div>
+      <div class="route-chip" onclick="quickBook('Freetown','Kailahun')"><span>Freetown → Kailahun</span><span class="price">From Le 665</span></div>
     </div>
   </section>
 
@@ -726,11 +726,11 @@
           <div style="display:flex;flex-direction:column;gap:12px">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.9rem">
               <input type="checkbox" id="opt-insurance" style="width:16px;height:16px" />
-              <span><strong>Travel Insurance</strong> — Le 10,000/passenger (trip cancellation &amp; delay cover)</span>
+              <span><strong>Travel Insurance</strong> — Le 10/passenger (trip cancellation &amp; delay cover)</span>
             </label>
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.9rem">
               <input type="checkbox" id="opt-luggage" style="width:16px;height:16px" />
-              <span><strong>Extra Luggage</strong> — Le 20,000 (up to 30 kg additional)</span>
+              <span><strong>Extra Luggage</strong> — Le 20 (up to 30 kg additional)</span>
             </label>
           </div>
         </div>
@@ -745,7 +745,7 @@
           <div class="summary-row"><span class="label">Seat(s)</span><span class="val" id="ps-seats">—</span></div>
           <div class="summary-row"><span class="label">Fare</span><span class="val" id="ps-fare">—</span></div>
           <div class="summary-row" id="ps-children-row" style="display:none"><span class="label">Children fare</span><span class="val" id="ps-children-fare">—</span></div>
-          <div class="summary-row"><span class="label">Service fee</span><span class="val">Le 5,000</span></div>
+          <div class="summary-row"><span class="label">Service fee</span><span class="val">Le 5</span></div>
           <div class="total-row"><span class="label">Total</span><span class="val" id="ps-total">—</span></div>
         </div>
       </div>
@@ -862,7 +862,7 @@
           <div class="summary-row" id="pay-child-fare-row" style="display:none"><span class="label">Children fare</span><span class="val" id="pay-child-fare">—</span></div>
           <div class="summary-row"><span class="label">Insurance</span><span class="val" id="pay-insurance">—</span></div>
           <div class="summary-row"><span class="label">Extra luggage</span><span class="val" id="pay-luggage">—</span></div>
-          <div class="summary-row"><span class="label">Service fee</span><span class="val">Le 5,000</span></div>
+          <div class="summary-row"><span class="label">Service fee</span><span class="val">Le 5</span></div>
           <div class="total-row"><span class="label">Total</span><span class="val" id="pay-total">—</span></div>
         </div>
         <p style="font-size:.75rem;color:var(--gray-400);margin-top:12px;text-align:center;line-height:1.6">
@@ -942,17 +942,17 @@
 <script>
   // ── Bus data (mirrors server — frontend uses for display only; server recalculates fares) ──
   const BUSES = [
-    { id:1, operator:'Angel VIP Express',   code:'VIP', color:'#1EB53A', type:'VIP AC',        dep:'06:00', arr:'10:00', duration:'4h 00m', amenities:['AC','WiFi','USB Port','Recliner'], baseFare:250000, totalSeats:36 },
-    { id:2, operator:'Angel Executive',      code:'EXE', color:'#059669', type:'Executive AC',   dep:'07:30', arr:'12:00', duration:'4h 30m', amenities:['AC','USB Port'],                    baseFare:200000, totalSeats:40 },
-    { id:3, operator:'Angel Business Coach', code:'BUS', color:'#7c3aed', type:'Business Class', dep:'09:00', arr:'14:00', duration:'5h 00m', amenities:['AC','Recliner'],                    baseFare:180000, totalSeats:44 },
-    { id:4, operator:'Angel Express',        code:'EXP', color:'#dc2626', type:'Standard AC',    dep:'10:00', arr:'15:30', duration:'5h 30m', amenities:['AC'],                                baseFare:150000, totalSeats:50 },
-    { id:5, operator:'Angel Night Rider',    code:'NGT', color:'#0f172a', type:'Overnight AC',   dep:'20:00', arr:'01:00', duration:'5h 00m', amenities:['AC','Blanket','Snack'],              baseFare:190000, totalSeats:40 },
-    { id:6, operator:'Angel Economy Plus',   code:'ECO', color:'#d97706', type:'Economy',        dep:'12:00', arr:'18:00', duration:'6h 00m', amenities:['Fan'],                               baseFare:100000, totalSeats:54 },
+    { id:1, operator:'Angel VIP Express',   code:'VIP', color:'#1EB53A', type:'VIP AC',        dep:'06:00', arr:'10:00', duration:'4h 00m', amenities:['AC','WiFi','USB Port','Recliner'], baseFare:875, totalSeats:36 },
+    { id:2, operator:'Angel Executive',      code:'EXE', color:'#059669', type:'Executive AC',   dep:'07:30', arr:'12:00', duration:'4h 30m', amenities:['AC','USB Port'],                    baseFare:700, totalSeats:40 },
+    { id:3, operator:'Angel Business Coach', code:'BUS', color:'#7c3aed', type:'Business Class', dep:'09:00', arr:'14:00', duration:'5h 00m', amenities:['AC','Recliner'],                    baseFare:630, totalSeats:44 },
+    { id:4, operator:'Angel Express',        code:'EXP', color:'#dc2626', type:'Standard AC',    dep:'10:00', arr:'15:30', duration:'5h 30m', amenities:['AC'],                                baseFare:525, totalSeats:50 },
+    { id:5, operator:'Angel Night Rider',    code:'NGT', color:'#0f172a', type:'Overnight AC',   dep:'20:00', arr:'01:00', duration:'5h 00m', amenities:['AC','Blanket','Snack'],              baseFare:665, totalSeats:40 },
+    { id:6, operator:'Angel Economy Plus',   code:'ECO', color:'#d97706', type:'Economy',        dep:'12:00', arr:'18:00', duration:'6h 00m', amenities:['Fan'],                               baseFare:350, totalSeats:54 },
   ];
 
   const ROUTE_MULTIPLIERS = {
-    'Freetown-Bo':1.0,'Freetown-Kenema':1.35,'Freetown-Makeni':0.80,
-    'Freetown-Koidu (Kono)':1.70,'Freetown-Kailahun':1.90,'Freetown-Port Loko':0.55,
+    'Freetown-Bo':1.0,'Freetown-Kenema':1.2857,'Freetown-Makeni':0.8571,
+    'Freetown-Koidu (Kono)':1.7143,'Freetown-Kailahun':1.90,'Freetown-Port Loko':0.55,
     'Freetown-Kambia':0.80,'Freetown-Kabala':1.30,'Freetown-Magburaka':0.90,
     'Freetown-Lunsar':0.50,'Freetown-Waterloo':0.15,'Freetown-Pujehun':1.20,
     'Freetown-Moyamba':0.65,'Freetown-Bonthe':1.40,'Freetown-Mattru Jong':1.10,
@@ -1230,7 +1230,7 @@
     const key = `${state.from}-${state.to}`;
     const rev = `${state.to}-${state.from}`;
     const m = ROUTE_MULTIPLIERS[key] || ROUTE_MULTIPLIERS[rev] || 0.75;
-    return Math.round((bus.baseFare * m) / 1000) * 1000;
+    return Math.round(bus.baseFare * m);
   }
 
   function renderResults() {
@@ -1508,8 +1508,8 @@
     const fare       = getFare(state.selectedBus);
     const base       = fare * state.passengers;
     const childFare  = calcChildrenFare(fare);
-    const insurance  = state.extras.insurance ? 10000 * state.passengers : 0;
-    const luggage    = state.extras.luggage   ? 20000 : 0;
+    const insurance  = state.extras.insurance ? 10 * state.passengers : 0;
+    const luggage    = state.extras.luggage   ? 20 : 0;
     const total      = base + childFare + insurance + luggage + 5000;
     state.totalAmount = total;
 

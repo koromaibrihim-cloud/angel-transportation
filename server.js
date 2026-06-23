@@ -120,9 +120,9 @@ app.post('/api/booking/create', (req, res) => {
     return sum + (age >= 3 && age <= 11 ? Math.round(farePerSeat * 0.5) : 0);
   }, 0);
 
-  const insurance  = extras?.insurance ? 10000 * passengers.length : 0;
-  const luggage    = extras?.luggage   ? 20000 : 0;
-  const serviceFee = 5000;
+  const insurance  = extras?.insurance ? 10 * passengers.length : 0;
+  const luggage    = extras?.luggage   ? 20 : 0;
+  const serviceFee = 5;
   const totalAmount = adultFare + childrenFare + insurance + luggage + serviceFee;
 
   const bookingRef = `ANG-${randomCode(6)}`;
